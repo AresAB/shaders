@@ -41,7 +41,8 @@ void main() {
    vec4 col = grayscaleColor + ditherSpread * GetNoise(bayer4, int(uv.x * resolution.x), int(uv.y * resolution.y));
    
    //posterization of colors
-   col = posterize(col, 5);
+   int colorAmount = 5;//10
+   col = posterize(col, colorAmount);
    if(col.x > 0.) col = texture(tex2, vec2(col.x, 0));
    else col = texture(tex2, vec2(0.999, 0));
    
