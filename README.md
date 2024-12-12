@@ -1,0 +1,1 @@
+GLSL shaders I've been working on when bored, feel free to use them if you want to for some reason. So far most of them are just me trying to figure out how to replicate shaders shown in Acerola videos.
