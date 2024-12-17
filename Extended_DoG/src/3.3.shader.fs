@@ -19,7 +19,7 @@ void main()
     int kernal_size = 5;
     // controls general image sharpness
     // max 100?
-    float tau = 0.5;
+    float tau = 0.1;
     // controls the seperator of the threshold
     // max 0.01
     float epsilon = 0.01;
@@ -56,8 +56,9 @@ void main()
         }
     }
 
-    color_sum1 /= G_sum1;
-    color_sum2 /= G_sum2;
+    // remember, since we are doing the tau scaling after the gaussian blurring, we have to also implement it for the sum
+    color_sum1 /= G_sum1 * ( 1 + tau);
+    color_sum2 /= G_sum2 * tau;
     
     vec4 color = vec4(1);
 
