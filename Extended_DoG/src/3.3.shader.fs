@@ -18,14 +18,14 @@ void main()
     // not really a parameter
     int kernal_size = 5;
     // controls general image sharpness
-    // max 100?
-    float tau = 0.1;
+    // for some ungodly reason changing this value seems to do NOTHING
+    float tau = 1.0;
     // controls the seperator of the threshold
-    // max 0.01
-    float epsilon = 0.01;
+    // max changes with image, usually around 0.01 - 0.02
+    float epsilon = 0.0075;
     // controls the steepness of the lower threshold, aka higher phi = sharper transition between black and white
-    // max 2?
-    float phi = 0.5;
+    // max 150 to like 600 depending on image, big numbers
+    float phi = 500.;
 
     vec2 tex_size = 1.0 / textureSize(texture1, 0);
     vec3 gray_scale = vec3(0.2989, 0.589, 0.114);
@@ -63,12 +63,11 @@ void main()
     vec4 color = vec4(1);
 
     float color_val = (1 + tau) * color_sum1 - (tau * color_sum2);
-    //float color_val = color_sum1 - color_sum2;
     int is_higher = int(color_val >= epsilon);
     int is_lower = (is_higher - 1) * -1;
 
     color.xyz = vec3( is_higher + (1 + tanh(phi * (color_val - epsilon))) * is_lower );
-    color.xyz = vec3( is_higher );
 
     FragColor = color;
+    //FragColor = texture(texture1, TexCoord);
 }
