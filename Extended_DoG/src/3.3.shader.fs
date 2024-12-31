@@ -1,7 +1,7 @@
 #version 330 core
 
-out vec4 FragColor;
-  
+layout(location = 0) out vec3 FragColor;
+
 in vec2 TexCoord;
 
 uniform sampler2D texture1;
@@ -22,16 +22,16 @@ void main()
     float tau = 1.0;
     // controls the seperator of the threshold
     // max changes with image, usually around 0.01 - 0.02
-    float epsilon = 0.0075;
+    float epsilon = 0.008;
     // controls the steepness of the lower threshold, aka higher phi = sharper transition between black and white
     // max 150 to like 600 depending on image, big numbers
-    float phi = 500.;
+    float phi = 120.;
 
     vec2 tex_size = 1.0 / textureSize(texture1, 0);
     vec3 gray_scale = vec3(0.2989, 0.589, 0.114);
 
     // the lower the sigma, the more details preserved
-    float sigma1 = 1.0;
+    float sigma1 = 1.3;
     float color_sum1 = 0;
     float G_sum1 = 0;
 
@@ -56,18 +56,15 @@ void main()
         }
     }
 
-    // remember, since we are doing the tau scaling after the gaussian blurring, we have to also implement it for the sum
+    // remember, since we are doing the tau scaling after the gaussian blurring, we have to also implement it for the G_sum
     color_sum1 /= G_sum1 * ( 1 + tau);
     color_sum2 /= G_sum2 * tau;
     
-    vec4 color = vec4(1);
-
     float color_val = (1 + tau) * color_sum1 - (tau * color_sum2);
     int is_higher = int(color_val >= epsilon);
     int is_lower = (is_higher - 1) * -1;
 
-    color.xyz = vec3( is_higher + (1 + tanh(phi * (color_val - epsilon))) * is_lower );
+    vec3 color = vec3( is_higher + (1 + tanh(phi * (color_val - epsilon))) * is_lower );
 
     FragColor = color;
-    //FragColor = texture(texture1, TexCoord);
 }

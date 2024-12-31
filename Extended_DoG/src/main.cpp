@@ -2,19 +2,25 @@
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
+
 #include <shader_s.h>
 
+#include <memory>
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
+void saveScreenshotToFile(std::string filename, GLFWwindow *window, int renderedTexture, int scr_width, int scr_height);
 
 // settings
 // AoS : 360, 504
 // container : 512, 512
 // guy : 545, 656
-const unsigned int SCR_WIDTH = 545;
-const unsigned int SCR_HEIGHT = 656;
+// end_times : 1918, 796
+const unsigned int SCR_WIDTH = 1918;
+const unsigned int SCR_HEIGHT = 796;
 
 int main()
 {
@@ -102,8 +108,8 @@ int main()
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    // not all jpgs are made equally, if it causes a segmentation error just fucking convert to png, it aint worth it
-    unsigned char *data = stbi_load("textures/guy.png", &width, &height, &nrChannels, 0);
+    // not all jpgs are made equally, if it causes a segmentation error just convert to png, it aint worth it
+    unsigned char *data = stbi_load("textures/end_times.png", &width, &height, &nrChannels, 0);
     if (data)
     {
         // do GL_RGBA on the second GL_RGB for pngs
@@ -124,6 +130,42 @@ int main()
     // or set it via the texture class
     ourShader.setInt("texture1", 0);
 
+    // screenshot shenanigans, don't ask me how it works, it probably doesn't
+    // -------------------------------------------------------------------------------------------
+    // Sources:
+    // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
+    // https://blog.42yeah.is/opengl/2023/05/27/framebuffer-export.html
+
+
+    // The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
+    unsigned int frameBuffer = 0;
+    glGenFramebuffers(1, &frameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+    unsigned int renderedTexture;
+    glGenTextures(1, &renderedTexture);
+
+    // "Bind" the newly created texture : all future texture functions will modify this texture
+    glBindTexture(GL_TEXTURE_2D, renderedTexture);
+
+    // Give an empty image to OpenGL ( the last "0" )
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+    // Set "renderedTexture" as our colour attachement #0
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+
+    // Set the list of draw buffers.
+    GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+    // "DrawBuffers" are where the fragment shader return to, this is basically saying return to our renderTexture
+    glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+    // Always check that our framebuffer is ok
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    return false;
+
+    // Render to our framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -131,6 +173,7 @@ int main()
         // input
         // -----
         processInput(window);
+        saveScreenshotToFile("../results/aaaab.jpg", window, renderedTexture, SCR_WIDTH, SCR_HEIGHT);
 
         // render
         // ------
@@ -141,8 +184,23 @@ int main()
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
 
-        // render the triangle
+        // call shaders
         ourShader.use();
+
+        // Render to renderedTexture
+        glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+        // render the triangle
+        // this has to be done twice, once for the renderedTexture, and once for the screen
+        // there probably is a better way to do this, but I have been searching guides for 2 weeks straight and just want this to work
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        // Render to screen
+        // the "0" is the screen, and IS NOT renderTexture
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // render the triangle
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -179,4 +237,27 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+}
+
+void saveScreenshotToFile(std::string filename, GLFWwindow *window, int renderedTexture, int scr_width, int scr_height) {    
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        std::cout << "argsataerra" << std::endl;
+        std::unique_ptr<unsigned char[]> data = std::make_unique<unsigned char[]>(scr_width * scr_height * 3 * sizeof(unsigned int));
+        // Or you can just:
+        //unsigned char *data = new unsigned char[scr_width * scr_height * 3];
+        glBindTexture(GL_TEXTURE_2D, renderedTexture);
+
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, data.get());
+
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, scr_width, scr_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.get());
+
+        stbi_flip_vertically_on_write(true);
+        int ret = stbi_write_jpg(filename.c_str(), scr_width, scr_height, 3, data.get(), 100);
+        if (ret == 0)
+        {
+            std::cout << "Failed to capture screenshot" << std::endl;
+        }
+    }
 }
