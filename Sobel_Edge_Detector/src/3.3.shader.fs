@@ -42,5 +42,17 @@ void main()
     float sobel_magnitude = sqrt(pow(sobel_x, 2) + pow(sobel_y, 2));
     float sobel_dir = atan(sobel_y / sobel_x);
 
+    // This is for finding the tangent flow for direction of least change, relevant info if used for other effects
+    // -------------------------------
+
+    /*float E = pow(sobel_x, 2);
+    float F = sobel_x * sobel_y;
+    float G = pow(sobel_y, 2);
+
+    float eigen_val = ( E + G + sqrt( pow( E - G, 2 ) + ( 4 * pow( F, 2 ) ) ) ) / 2.;
+    vec2 eigen_vec = vec2(e_val - E, -1 * F);*/
+
+    // -------------------------------
+
     FragColor = vec3(sobel_magnitude);
 }
