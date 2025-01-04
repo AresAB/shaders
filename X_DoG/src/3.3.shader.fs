@@ -18,13 +18,10 @@ void main()
     // not really a parameter
     int kernal_size = 5;
     // controls general image sharpness
-    // for some ungodly reason changing this value seems to do NOTHING
     float tau = 100.;
     // controls the seperator of the threshold
-    // max changes with image, usually around 0.01 - 0.02
-    float epsilon = 0.5;
+    float epsilon = 0.6;
     // controls the steepness of the lower threshold, aka higher phi = sharper transition between black and white
-    // max 150 to like 600 depending on image, big numbers
     float phi = 7.;
 
     vec2 tex_size = 1.0 / textureSize(texture1, 0);
@@ -35,7 +32,7 @@ void main()
     float color_sum1 = 0;
     float G_sum1 = 0;
 
-    float sigma2 = sigma1 * 1.6;
+    float sigma2 = sigma1 * 1.3;
     float color_sum2 = 0;
     float G_sum2 = 0;
 
@@ -56,9 +53,6 @@ void main()
         }
     }
 
-    // remember, since we are doing the tau scaling after the gaussian blurring, we have to also implement it for the G_sum
-    //color_sum1 /= G_sum1 * ( 1 + tau);
-    //color_sum2 /= G_sum2 * tau;
     color_sum1 /= G_sum1;
     color_sum2 /= G_sum2;
     
@@ -68,6 +62,10 @@ void main()
     int is_lower = (is_higher - 1) * -1;
 
     vec3 color = vec3( is_higher + ((1 + tanh(phi * (color_val - epsilon))) * is_lower) );
+
+    //color.x *= texture(texture1, TexCoord).x;
+    //color.y *= texture(texture1, TexCoord).y;
+    //color.z *= texture(texture1, TexCoord).z;
 
     FragColor = color;
 }

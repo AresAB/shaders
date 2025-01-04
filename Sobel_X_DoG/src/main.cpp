@@ -173,7 +173,7 @@ int main()
         // input
         // -----
         processInput(window);
-        saveScreenshotToFile("../results/aaaak.jpg", window, renderedTexture, SCR_WIDTH, SCR_HEIGHT);
+        saveScreenshotToFile("../results/aaaam.jpg", window, renderedTexture, SCR_WIDTH, SCR_HEIGHT);
 
         // render
         // ------

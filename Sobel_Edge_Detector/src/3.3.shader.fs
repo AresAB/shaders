@@ -50,7 +50,7 @@ void main()
     float G = pow(sobel_y, 2);
 
     float eigen_val = ( E + G + sqrt( pow( E - G, 2 ) + ( 4 * pow( F, 2 ) ) ) ) / 2.;
-    vec2 eigen_vec = vec2(e_val - E, -1 * F);*/
+    vec2 eigen_vec = vec2(eigen_val - E, -1 * F);*/
 
     // -------------------------------
 

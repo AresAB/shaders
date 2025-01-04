@@ -30,7 +30,7 @@ void main()
     for (int row = 0; row < kernal_size; row += 1) {
         for (int col = 0; col < kernal_size; col += 1) {
 
-            vec4 tex_color = texture(texture1, TexCoord + vec2((row - 1) * tex_size.x, (col - 1) * tex_size.y));
+            vec4 tex_color = texture(texture1, TexCoord + vec2(row * tex_size.x, col * tex_size.y));
             // grayscale the color to desaturate for better DoG
             float gray_scale_color = dot(tex_color.xyz, gray_scale);
 
