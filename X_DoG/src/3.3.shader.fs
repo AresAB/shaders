@@ -56,7 +56,6 @@ void main()
     color_sum1 /= G_sum1;
     color_sum2 /= G_sum2;
     
-    //float color_val = (1 + tau) * color_sum1 - (tau * color_sum2);
     float color_val = (1 + tau) * color_sum1 - (tau * color_sum2);
     int is_higher = int(color_val >= epsilon);
     int is_lower = (is_higher - 1) * -1;

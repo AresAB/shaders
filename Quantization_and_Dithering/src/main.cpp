@@ -19,8 +19,8 @@ void saveScreenshotToFile(std::string filename, GLFWwindow *window, int rendered
 // container : 512, 512
 // guy : 545, 656
 // end_times : 1918, 796
-const unsigned int SCR_WIDTH = 545;
-const unsigned int SCR_HEIGHT = 656;
+const unsigned int SCR_WIDTH = 1918;
+const unsigned int SCR_HEIGHT = 796;
 
 int main()
 {
@@ -109,7 +109,7 @@ int main()
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
     // not all jpgs are made equally, if it causes a segmentation error just convert to png, it aint worth it
-    unsigned char *data = stbi_load("textures/guy.png", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("textures/end_times.png", &width, &height, &nrChannels, 0);
     if (data)
     {
         // do GL_RGBA on the second GL_RGB for pngs
@@ -173,7 +173,7 @@ int main()
         // input
         // -----
         processInput(window);
-        saveScreenshotToFile("../results/aaaan.jpg", window, renderedTexture, SCR_WIDTH, SCR_HEIGHT);
+        saveScreenshotToFile("../results/aaaao.jpg", window, renderedTexture, SCR_WIDTH, SCR_HEIGHT);
 
         // render
         // ------

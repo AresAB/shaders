@@ -53,13 +53,24 @@ void main()
     // not really a parameter
     int kernal_size = 5;
     // controls general image sharpness
-    float tau = 100.;
+    float tau = 60.;
     // controls the seperator of the threshold
-    float epsilon = 0.6;
+    float epsilon = 0.7;
     // controls the steepness of the lower threshold, aka higher phi = sharper transition between black and white
     float phi = 7.;
     // controls strength of the tangent flow blur, aka higher sigma_c = stronger de-noising
     float sigma_c = 0.8;
+    // controls first image blur, aka lower sigma_e, more details preserved
+    float sigma_e = 1.3;
+    // scalar for the second image blur
+    float k = 1.3;
+
+    float color_sum1 = 0;
+    float G_sum1 = 0;
+
+    float sigma_e2 = sigma_e * k;
+    float color_sum2 = 0;
+    float G_sum2 = 0;
 
     vec4 t_struct_sum = vec4(0);
     float G_sigma_c_sum = 0;
@@ -93,6 +104,31 @@ void main()
     
     float eigen_val = ( t_struct.x + t_struct.w + sqrt( pow( t_struct.x - t_struct.w, 2 ) + ( 4 * pow( t_struct.y, 2 ) ) ) ) / 2.;
     vec2 eigen_vec = vec2(eigen_val - t_struct.x, -1 * t_struct.y);
+    //eigen_vec /= sqrt((eigen_vec.x * eigen_vec.x) + (eigen_vec.y * eigen_vec.y));
 
-    FragColor = vec3(atan(eigen_vec.y / eigen_vec.x));
+    for (int i = 0; i < kernal_size; i += 1) {
+        vec4 tex_color = texture(texture1, TexCoord + vec2((i - 2) * tex_size.x * eigen_vec.x, (i - 2) * tex_size.y * eigen_vec.y));
+        // grayscale the color to desaturate for better DoG
+        float gray_scale_color = dot(tex_color.xyz, gray_scale);
+
+        float gaussian1 = Gaussian_1D(i, sigma_e, kernal_size);
+        G_sum1 += gaussian1;
+        color_sum1 += gray_scale_color * gaussian1;
+
+        float gaussian2 = Gaussian_1D(i, sigma_e2, kernal_size);
+        G_sum2 += gaussian2;
+        color_sum2 += gray_scale_color * gaussian2;
+    }
+
+    color_sum1 /= G_sum1;
+    color_sum2 /= G_sum2;
+    
+    float color_val = (1 + tau) * color_sum1 - (tau * color_sum2);
+    int is_higher = int(color_val >= epsilon);
+    int is_lower = (is_higher - 1) * -1;
+
+    vec3 color = vec3( is_higher + ((1 + tanh(phi * (color_val - epsilon))) * is_lower) );
+
+    //FragColor = vec3( sqrt((eigen_vec.x * eigen_vec.x) + (eigen_vec.y * eigen_vec.y)) );
+    FragColor = color;
 }
