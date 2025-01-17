@@ -8,7 +8,7 @@ uniform sampler2D texture1;
 
 void main()
 {
-    float downscale = 4.;
+    float downscale = 2.;
     float dither_spread = 0.5;
     // This will affect all 3 colors, aka num_colors = 2 actually allows for 6 colors
     float num_colors = 5;

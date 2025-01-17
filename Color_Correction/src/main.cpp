@@ -112,7 +112,7 @@ int main()
     unsigned char *data = stbi_load("textures/guy.png", &width, &height, &nrChannels, 0);
     if (data)
     {
-        // do GL_RGBA on the second GL_RGB for pngs
+        // do GL_RGBA on the second GL_RGB for pngs, except if it doesn't feel like it for some reason
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
@@ -173,7 +173,7 @@ int main()
         // input
         // -----
         processInput(window);
-        saveScreenshotToFile("../results/aaaam.jpg", window, renderedTexture, SCR_WIDTH, SCR_HEIGHT);
+        saveScreenshotToFile("results/aaaa2.jpg", window, renderedTexture, SCR_WIDTH, SCR_HEIGHT);
 
         // render
         // ------

@@ -53,15 +53,15 @@ void main()
     // not really a parameter
     int kernal_size = 5;
     // controls general image sharpness
-    float tau = 60.;
+    float tau = 40.;
     // controls the seperator of the threshold
     float epsilon = 0.7;
     // controls the steepness of the lower threshold, aka higher phi = sharper transition between black and white
-    float phi = 7.;
+    float phi = 4.;
     // controls strength of the tangent flow blur, aka higher sigma_c = stronger de-noising
-    float sigma_c = 0.8;
+    float sigma_c = 0.7;
     // controls first image blur, aka lower sigma_e, more details preserved
-    float sigma_e = 1.3;
+    float sigma_e = 2.;
     // scalar for the second image blur
     float k = 1.3;
 
@@ -104,7 +104,7 @@ void main()
     
     float eigen_val = ( t_struct.x + t_struct.w + sqrt( pow( t_struct.x - t_struct.w, 2 ) + ( 4 * pow( t_struct.y, 2 ) ) ) ) / 2.;
     vec2 eigen_vec = vec2(eigen_val - t_struct.x, -1 * t_struct.y);
-    //eigen_vec /= sqrt((eigen_vec.x * eigen_vec.x) + (eigen_vec.y * eigen_vec.y));
+    eigen_vec /= sqrt((eigen_vec.x * eigen_vec.x) + (eigen_vec.y * eigen_vec.y));
 
     for (int i = 0; i < kernal_size; i += 1) {
         vec4 tex_color = texture(texture1, TexCoord + vec2((i - 2) * tex_size.x * eigen_vec.x, (i - 2) * tex_size.y * eigen_vec.y));
@@ -130,5 +130,6 @@ void main()
     vec3 color = vec3( is_higher + ((1 + tanh(phi * (color_val - epsilon))) * is_lower) );
 
     //FragColor = vec3( sqrt((eigen_vec.x * eigen_vec.x) + (eigen_vec.y * eigen_vec.y)) );
-    FragColor = color;
+    FragColor = color * texture(texture1, TexCoord).xyz;
+    //FragColor = color;
 }
