@@ -14,16 +14,28 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void saveScreenshotToFile(std::string filename, GLFWwindow *window, int renderedTexture, int scr_width, int scr_height);
 
-// settings
-// AoS : 360, 504
-// container : 512, 512
-// guy : 545, 656
-// end_times : 1918, 796
-const unsigned int SCR_WIDTH = 545;
-const unsigned int SCR_HEIGHT = 656;
-
-int main()
+int main(int argc, char *argv[])
 {
+    const unsigned int SCR_WIDTH = atoi(argv[1]);
+    const unsigned int SCR_HEIGHT = atoi(argv[2]);
+    const char *SCR_SHOT_PATH = argv[4];
+    const char *TEXTURE1_PATH = argv[5];
+    unsigned int image_color_type;
+
+    std::string arg3(argv[3]);
+    std::string rgba = "RGBA";
+
+    if (arg3 == rgba)
+    {
+        image_color_type = GL_RGBA;
+        std::cout << "a" << std::endl;
+    }
+    else
+    {
+        image_color_type = GL_RGB;
+        std::cout << "b" << std::endl;
+    }
+
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -109,11 +121,11 @@ int main()
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
     // not all jpgs are made equally, if it causes a segmentation error just convert to png, it aint worth it
-    unsigned char *data = stbi_load("textures/guy.png", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load(TEXTURE1_PATH, &width, &height, &nrChannels, 0);
     if (data)
     {
         // do GL_RGBA on the second GL_RGB for pngs, except if it doesn't feel like it for some reason
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, image_color_type, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -173,7 +185,7 @@ int main()
         // input
         // -----
         processInput(window);
-        saveScreenshotToFile("results/aaaa2.jpg", window, renderedTexture, SCR_WIDTH, SCR_HEIGHT);
+        saveScreenshotToFile(SCR_SHOT_PATH, window, renderedTexture, SCR_WIDTH, SCR_HEIGHT);
 
         // render
         // ------
