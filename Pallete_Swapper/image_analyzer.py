@@ -10,6 +10,10 @@ def main():
     image_dimensions[0] = int(image_dimensions[0])
     image_dimensions[1] = int(image_dimensions[1])
 
+    while image_dimensions[0] < scr_size[0] and image_dimensions[1] < scr_size[1]:
+        image_dimensions[0] *= 2
+        image_dimensions[1] *= 2
+
     while image_dimensions[0] > scr_size[0] or image_dimensions[1] > scr_size[1]:
         image_dimensions[0] /= 2
         image_dimensions[1] /= 2

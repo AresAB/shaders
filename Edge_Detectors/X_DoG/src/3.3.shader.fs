@@ -66,5 +66,5 @@ void main()
     //color.y *= texture(texture1, TexCoord).y;
     //color.z *= texture(texture1, TexCoord).z;
 
-    FragColor = color;
+    FragColor = color * texture(texture1, TexCoord).xyz;
 }

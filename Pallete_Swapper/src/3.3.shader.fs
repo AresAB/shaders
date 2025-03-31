@@ -29,14 +29,14 @@ vec3 oklch_to_RGB(vec3 LCH)
 
 void main()
 {
-    float num_colors = 5;
+    float num_colors = 8;
     float luminance = 0.3;
-    float chroma = 0.2;
-    float hue = 0.;
+    float chroma = 0.15;
+    float hue = 4.;
     // remember to keep one of these spreads constant for the sake of color harmony
     float l_spread = 0.2;
     float c_spread = 0.;
-    float h_spread = 0.5;
+    float h_spread = 1;
 
     l_spread *= (5./num_colors);
     c_spread *= (5./num_colors);

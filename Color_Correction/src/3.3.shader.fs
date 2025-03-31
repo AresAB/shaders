@@ -9,13 +9,13 @@ uniform sampler2D texture1;
 void main()
 {
     // default is 0
-    float brightness = 0.1;
+    float brightness = 0.;
     // default is 1
-    float contrast = 1.;
+    float contrast = 1;
     // default is 1
     float saturation = 2.;
     // default is 1
-    float gamma = 2;
+    float gamma = 1;
 
     vec3 grayscale = vec3(0.2989, 0.589, 0.114);
 

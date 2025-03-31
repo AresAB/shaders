@@ -53,15 +53,15 @@ void main()
     // not really a parameter
     int kernal_size = 5;
     // controls general image sharpness
-    float tau = 40.;
+    float tau = 20.;
     // controls the seperator of the threshold
-    float epsilon = 0.7;
+    float epsilon = 0.6;
     // controls the steepness of the lower threshold, aka higher phi = sharper transition between black and white
-    float phi = 4.;
+    float phi = 5.;
     // controls strength of the tangent flow blur, aka higher sigma_c = stronger de-noising
-    float sigma_c = 0.7;
+    float sigma_c = 0.1;
     // controls first image blur, aka lower sigma_e, more details preserved
-    float sigma_e = 2.;
+    float sigma_e = 1.;
     // scalar for the second image blur
     float k = 1.3;
 
