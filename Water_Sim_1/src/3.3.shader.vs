@@ -15,9 +15,9 @@ uniform float time;
 void main()
 {
     // ampnitude of sin
-    float amp = 0.8 / 100;
+    float amp = 0.8 / 100 * (sin(time)/2 + 1);
     // length between sin intervals
-    float wave_len = 0.15;
+    float wave_len = 0.15 * (sin(time)/2 + 2);
     // speed of the wave
     float speed = 0.2;
     // this sure is a parameter
