@@ -24,7 +24,7 @@ void main()
     vec3 color = texture(texture1, TexCoord).xyz;
     float gray_scale = dot(vec3(0.2989, 0.589, 0.114), color);
 
-    int hatch_index = layer_count - int(floor(gray_scale * layer_count + 0.5) + 0.5);
+    int hatch_index = layer_count - int(floor(gray_scale * layer_count + 0.5));
     if (hatch_index <= 1) FragColor = vec3(1.);
     else if (hatch_index == layer_count) FragColor = vec3(0.);
     else {
