@@ -24,23 +24,25 @@ vec3 oklch_to_RGB(vec3 LCH)
     rgb.g = l * -1.2684380046 + m * 2.6097574011 + s * -0.3413193965;
     rgb.b = l * -0.0041960863 + m * -0.7034186147 + s * 1.7076147010;
 
+    rgb = max(min(rgb, 1.), 0);
+
     return rgb;
 }
 
 void main()
 {
-    float num_colors = 8;
-    float luminance = 0.3;
+    float num_colors = 10;
+    float luminance = 0.5;
     float chroma = 0.15;
-    float hue = 4.;
+    float hue = 35.;
     // remember to keep one of these spreads constant for the sake of color harmony
-    float l_spread = 0.2;
+    float l_spread = 0.05;
     float c_spread = 0.;
-    float h_spread = 1;
+    float h_spread = 30 * 3.14 / 180.;
 
-    l_spread *= (5./num_colors);
-    c_spread *= (5./num_colors);
-    h_spread *= (5./num_colors);
+    //l_spread *= (5./num_colors);
+    //c_spread *= (5./num_colors);
+    //h_spread *= (5./num_colors);
 
     vec3 gray_scale = vec3(0.2989, 0.589, 0.114);
 
@@ -51,6 +53,12 @@ void main()
     oklch_col.x = luminance + (l_spread * uv * (num_colors - 1.));
     oklch_col.y = chroma + (c_spread * uv * (num_colors - 1.));
     oklch_col.z = hue + (h_spread * uv * (num_colors - 1.));
+
+    oklch_col.x = max(min(oklch_col.x, 1.), 0);
+    oklch_col.y = max(min(oklch_col.y, 1.), 0);
+    oklch_col.z *= 180. / 3.14;
+    oklch_col.z = int(oklch_col.z + 360) % (360);
+    oklch_col.z *= 3.14 / 180.;
 
     FragColor = oklch_to_RGB(oklch_col);
 }

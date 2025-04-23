@@ -11,7 +11,7 @@ void main()
     float downscale = 3.;
     float dither_spread = .5;
     // This will affect all 3 colors, aka num_colors = 2 actually allows for 6 colors
-    float num_colors = 2;
+    float num_colors = 8;
     //float sharpness = 1.;
 
     mat4 bayer;
