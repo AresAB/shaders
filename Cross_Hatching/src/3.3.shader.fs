@@ -17,9 +17,9 @@ vec2 rotate2d(vec2 uv, float _angle){
 void main()
 {
     // how many crosses (colors)
-    int layer_count = 8;
+    int layer_count = 6;
     // number of times hatch repeats (tiles) in image
-    float hatch_scale = 20.;
+    float hatch_scale = 14.;
 
     vec3 color = texture(texture1, TexCoord).xyz;
     float gray_scale = dot(vec3(0.2989, 0.589, 0.114), color);

@@ -8,10 +8,10 @@ uniform sampler2D texture1;
 
 void main()
 {
-    float downscale = 3.;
-    float dither_spread = .5;
+    float downscale = 8.;
+    float dither_spread = .25;
     // This will affect all 3 colors, aka num_colors = 2 actually allows for 6 colors
-    float num_colors = 8;
+    float num_colors = 4;
     //float sharpness = 1.;
 
     mat4 bayer;
@@ -40,5 +40,5 @@ void main()
     color = floor(color * (num_colors - 1.) + 0.5) / (num_colors - 1.);
 
     //FragColor = color;
-    //FragColor = texture(texture1, TexCoord).xyz + (dither_spread * dither_noise);
+    FragColor = texture(texture1, TexCoord).xyz + (dither_spread * dither_noise);
 }
