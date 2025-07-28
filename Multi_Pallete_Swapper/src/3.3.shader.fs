@@ -32,31 +32,39 @@ vec3 oklch_to_RGB(vec3 LCH)
 void main()
 {
     float num_colors = 10;
-    float luminance = 0.5;
-    float chroma = 0.15;
-    float hue = 35.;
-    // remember to keep one of these spreads constant for the sake of color harmony
-    float l_spread = 0.05;
-    float c_spread = 0.;
-    float h_spread = 30 * 3.14 / 180.;
+    float divider = 5. / num_colors;
 
-    //l_spread *= (5./num_colors);
-    //c_spread *= (5./num_colors);
-    //h_spread *= (5./num_colors);
+    float luminance_1 = 0.5;
+    float chroma_1 = 0.3;
+    float hue_1 = 215.;
+    // remember to keep one of these spreads constant for the sake of color harmony
+    float l_spread_1 = -0.1;
+    float c_spread_1 = 0.;
+    float h_spread_1 = 125;
+
+    float luminance_2 = 0.64;
+    float chroma_2 = 0.23;
+    float hue_2 = 114.;
+    // remember to keep one of these spreads constant for the sake of color harmony
+    float l_spread_2 = 0.1;
+    float c_spread_2 = 0.;
+    float h_spread_2 = -57;
 
     vec3 gray_scale = vec3(0.2989, 0.589, 0.114);
 
     float uv = dot(gray_scale, texture(texture1, TexCoord).xyz);
     uv = floor(uv * (num_colors - 1.) + 0.5) / (num_colors - 1.);
 
+    float is_pal_1 = floor(uv + divider);
+
     vec3 oklch_col;
-    oklch_col.x = luminance + (l_spread * uv * (num_colors - 1.));
-    oklch_col.y = chroma + (c_spread * uv * (num_colors - 1.));
-    oklch_col.z = hue + (h_spread * uv * (num_colors - 1.));
+    oklch_col.x = (luminance_1 + (l_spread_1 * uv)) * is_pal_1 + (luminance_2 + (l_spread_2 * uv)) * (1 - is_pal_1);
+    oklch_col.y = (chroma_1 + (c_spread_1 * uv)) * is_pal_1 + (chroma_2 + (c_spread_2 * uv) * (1 - is_pal_1));
+    oklch_col.z = (hue_1 + (h_spread_1 * uv)) * is_pal_1 + (hue_2 + (h_spread_2 * uv)) * (1 - is_pal_1);
+
 
     oklch_col.x = max(min(oklch_col.x, 1.), 0);
     oklch_col.y = max(min(oklch_col.y, 1.), 0);
-    oklch_col.z *= 180. / 3.14;
     oklch_col.z = int(oklch_col.z + 360) % (360);
     oklch_col.z *= 3.14 / 180.;
 
