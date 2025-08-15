@@ -2,7 +2,7 @@ import sys
 import os
 
 def main():
-    scr_size = [1920 - 2, 1080 - 10]
+    scr_size = [2880 - 2, 1800 - 10]
 
     image_info = " ".join(sys.argv).split(",")
 
