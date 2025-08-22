@@ -10,6 +10,8 @@ def main():
     image_dimensions[0] = int(image_dimensions[0])
     image_dimensions[1] = int(image_dimensions[1])
 
+    screen_shot_dimensions = image_dimensions.copy()
+
     while image_dimensions[0] < scr_size[0] and image_dimensions[1] < scr_size[1]:
         image_dimensions[0] *= 2
         image_dimensions[1] *= 2
@@ -23,6 +25,6 @@ def main():
     image_dir = "results/" + image_info[-1].split("/")[-1]
     counter = "_" + str(len(os.listdir("./results")))
             
-    print(image_dimensions[0], image_dimensions[1], image_color, image_dir + counter + ".jpg")
+    print(image_dimensions[0], image_dimensions[1], screen_shot_dimensions[0], screen_shot_dimensions[1], image_color, image_dir + counter + ".png")
 
 main()
