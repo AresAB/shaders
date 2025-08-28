@@ -123,14 +123,39 @@ const vec2 r_tri_offsets[10] =
 	vec2(0.15, -0.7),
 };
 
+const vec2 hex_offsets[19] = 
+{
+	vec2(0.),
+
+	vec2(0.5, 0.866),
+	vec2(1., 0.),
+	vec2(0.5, -0.866),
+	vec2(-0.5, -0.866),
+	vec2(-1., 0.),
+	vec2(-0.5, 0.866),
+
+    vec2(-1., 1.732),
+    vec2(0., 1.732),
+	vec2(1., 1.732),
+	vec2(1.5, 0.866),
+    vec2(2., 0.),
+	vec2(1.5, -0.866),
+    vec2(1., -1.732),
+    vec2(0., -1.732),
+	vec2(-1., -1.732),
+	vec2(-1.5, -0.866),
+	vec2(-2., 0.),
+	vec2(-1.5, 0.866),
+};
+
 void main()
 {
-    float strength = 5.;
+    float strength = 10.;
 
     vec3 color = vec3(0.);
-    for (int i = 0; i < circle_offsets.length(); i++){
-        color += texture(texture1, TexCoord + strength * circle_offsets[i] / textureSize(texture1, 0)).xyz;
+    for (int i = 0; i < hex_offsets.length(); i++){
+        color += texture(texture1, TexCoord + strength * hex_offsets[i] / textureSize(texture1, 0)).xyz;
     }
-    color /= circle_offsets.length();
+    color /= hex_offsets.length();
     FragColor = color;
 }
