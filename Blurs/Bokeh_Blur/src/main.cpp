@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 
     // build and compile our shader program
     // ------------------------------------
-    Shader ourShader("src/3.3.shader.vs", "src/3.3.shader.fs"); // you can name your shader files however you like
+    Shader ourShader("src/shader_vert.vs", "src/shader_frag.fs"); // you can name your shader files however you like
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
