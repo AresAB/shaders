@@ -11,6 +11,30 @@ vec3 Narkowicz_ACES(vec3 hdr)
     return clamp((hdr * (2.51 * hdr + 0.03)) / (hdr * (2.43 * hdr + 0.59) + 0.14), 0., 1.);
 }
 
+float log10(float a)
+{
+    return log(a) / log(10); // glsl makes log = ln cause why not
+}
+
+vec3 Tumblin_Rushmeier(vec3 hdr, vec3 avg)
+{
+    float Lin = dot(vec3(0.2989, 0.589, 0.114), hdr);
+    float Lavg = dot(vec3(0.2989, 0.589, 0.114), avg);
+    float _Ldmax = 1.; //luminance max (usually just 1)
+    float _Cmax = 1000.; //contrast max //1000 //35 num for CRT
+
+    float logLrw = log10(Lavg) + 0.84;
+    float alphaRw = 0.4 * logLrw + 2.92;
+    float betaRw = -0.4 * logLrw * logLrw - 2.584 * logLrw + 2.0208;
+    float Lwd = _Ldmax / sqrt(_Cmax);
+    float logLd = log10(Lwd) + 0.84;
+    float alphaD = 0.4 * logLd + 2.92;
+    float betaD = -0.4 * logLd * logLd - 2.584 * logLd + 2.0208;
+    float Lout = pow(Lin, alphaRw / alphaD) / _Ldmax * pow(10., (betaRw / betaD) / alphaD) - (1.0 / _Cmax);
+
+    return clamp(hdr / Lin * Lout, 0., 1.);
+}
+
 vec3 WhiteBalance(vec3 col, float te, float ti)
 {
     float t1 = te * 10. / 6.;
@@ -34,7 +58,7 @@ vec3 WhiteBalance(vec3 col, float te, float ti)
 
     mat3 LIN_2_LMS_MAT;
     LIN_2_LMS_MAT[0] = vec3(3.90405e-1, 7.08416e-2, 2.31082e-2);
-    LIN_2_LMS_MAT[1] = vec3(5.49941e-1, 9.63172e-1, 1.35775e-3);
+    LIN_2_LMS_MAT[1] = vec3(5.49941e-1, 9.63172e-1, 1.28021e-1);
     LIN_2_LMS_MAT[2] = vec3(8.92632e-3, 1.35775e-3, 9.36245e-1);
 
     mat3 LMS_2_LIN_MAT;
@@ -81,7 +105,8 @@ void main()
     color = max(mix(vec3(dot(color, grayscale)), color, saturation), 0.);
 
     // tone mapping
-    color = Narkowicz_ACES(color);
+    //color = Narkowicz_ACES(color);
+    color = Tumblin_Rushmeier(color, texture(texture1, TexCoord, 10.).rgb);
 
     color.x = pow(color.x, gamma);
     color.y = pow(color.y, gamma);
