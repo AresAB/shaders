@@ -8,7 +8,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
 #include <shader_s.h>
@@ -16,8 +15,7 @@
 #include <memory>
 #include <iostream>
 
-//void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window, glm::vec3& camPos, glm::vec3& camZ, glm::vec3& camUp);
+void processInput(GLFWwindow *window, glm::vec3& camPos, glm::vec3& camZ, glm::vec3& camUp, float& fov);
 void saveScreenshotToFile(std::string filename, GLFWwindow *window, int renderedTexture, int scr_width, int scr_height);
 
 int main(int argc, char *argv[])
@@ -26,23 +24,7 @@ int main(int argc, char *argv[])
     const unsigned int SCR_HEIGHT = atoi(argv[2]);
     const unsigned int SCR_SHOT_WIDTH = atoi(argv[3]);
     const unsigned int SCR_SHOT_HEIGHT = atoi(argv[4]);
-    const char *SCR_SHOT_PATH = argv[6];
-    const char *TEXTURE1_PATH = argv[7];
-    unsigned int image_color_type;
-
-    std::string arg5(argv[5]);
-    std::string rgba = "RGBA";
-
-    if (arg5 == rgba)
-    {
-        image_color_type = GL_RGBA;
-        std::cout << "a" << std::endl;
-    }
-    else
-    {
-        image_color_type = GL_RGB;
-        std::cout << "b" << std::endl;
-    }
+    const char *SCR_SHOT_PATH = argv[5];
 
     // glfw: initialize and configure
     // ------------------------------
@@ -65,7 +47,6 @@ int main(int argc, char *argv[])
         return -1;
     }
     glfwMakeContextCurrent(window);
-    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -74,6 +55,8 @@ int main(int argc, char *argv[])
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    glEnable(GL_DEPTH_TEST);
 
     // build and compile our shader program
     // ------------------------------------
@@ -115,8 +98,6 @@ int main(int argc, char *argv[])
     // load and create a texture 
     // -------------------------
     unsigned int texture1;
-    // texture 1
-    // ---------
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1); 
      // set the texture wrapping parameters
@@ -128,12 +109,12 @@ int main(int argc, char *argv[])
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    // not all jpgs are made equally, if it causes a segmentation error just convert to png, it aint worth it
-    unsigned char *data = stbi_load(TEXTURE1_PATH, &width, &height, &nrChannels, 0);
+    // not all jpgs are made equally, if it causes a segmentation error just convert to png, it aint worth debugging
+    unsigned char *data = stbi_load("textures/container.jpg", &width, &height, &nrChannels, 0);
     if (data)
     {
         // do GL_RGBA on the second GL_RGB for pngs, except if it doesn't feel like it for some reason
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, image_color_type, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -145,17 +126,7 @@ int main(int argc, char *argv[])
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
     ourShader.use(); // don't forget to activate/use the shader before setting uniforms!
-    // either set it manually like so:
-    // glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
-    // or set it via the texture class
     ourShader.setInt("texture1", 0);
-
-    // screenshot shenanigans, don't ask me how it works, it probably doesn't
-    // -------------------------------------------------------------------------------------------
-    // Sources:
-    // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
-    // https://blog.42yeah.is/opengl/2023/05/27/framebuffer-export.html
-
 
     // The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
     unsigned int frameBuffer = 0;
@@ -183,16 +154,13 @@ int main(int argc, char *argv[])
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     return false;
 
-    // create transformations
     glm::mat4 projection = glm::mat4(1.0f);
-    projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    // pass transformation matrices to the shader
-    ourShader.setMat4("projection", projection); 
+    float fov = 0.785;
 
     glm::vec3 camPos = glm::vec3(0.0f, 0.0f,  3.0f);
     glm::vec3 camZ = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::mat4 view = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+    glm::mat4 view = glm::mat4(1.0f);
 
     glm::mat4 model = glm::mat4(1.0f);
     ourShader.setMat4("model", model);
@@ -203,17 +171,21 @@ int main(int argc, char *argv[])
     {
         // input
         // -----
-        processInput(window, camPos, camZ, camUp);
+        processInput(window, camPos, camZ, camUp, fov);
         saveScreenshotToFile(SCR_SHOT_PATH, window, renderedTexture, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT);
 
         // render
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // bind textures on corresponding texture units
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
+
+        // perspective transformation
+        projection = glm::perspective(fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        ourShader.setMat4("projection", projection); 
 
         // camera/view transformation
         view = glm::lookAt(camPos, camPos + camZ, camUp);
@@ -227,7 +199,7 @@ int main(int argc, char *argv[])
         glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // render the triangle
         // this has to be done twice, once for the renderedTexture, and once for the screen
@@ -250,21 +222,15 @@ int main(int argc, char *argv[])
         glfwPollEvents();
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window, glm::vec3& camPos, glm::vec3& camZ, glm::vec3& camUp)
+void processInput(GLFWwindow *window, glm::vec3& camPos, glm::vec3& camZ, glm::vec3& camUp, float& fov)
 {
     float spd = 0.0001f;
     glm::vec3 camX = glm::normalize(glm::cross(camZ, camUp));
@@ -296,34 +262,31 @@ void processInput(GLFWwindow *window, glm::vec3& camPos, glm::vec3& camZ, glm::v
         camUp = glm::rotate(camUp, spd, glm::vec3(0.0f, 0.0f, 1.0f));
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         camUp = glm::rotate(camUp, spd, glm::vec3(0.0f, 0.0f, -1.0f));
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        fov -= spd;
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        fov += spd;
+    if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
+        fov = 0.785f;
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
+        camZ.x *= 0.0f;
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+        camZ.y *= 0.0f;
+    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+        camUp = glm::vec3(0.0f, 1.0f, 0.0f);
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// commented out because it might mess with screensaver logic and I generally want textures to keep their original resolution ratios
-// ---------------------------------------------------------------------------------------------
-/*void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
-}*/
-
 void saveScreenshotToFile(std::string filename, GLFWwindow *window, int renderedTexture, int scr_width, int scr_height) {    
-    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
     {
         std::cout << "argsataerra" << std::endl;
         std::unique_ptr<unsigned char[]> data = std::make_unique<unsigned char[]>(scr_width * scr_height * 4 * sizeof(unsigned int));
-        // Or you can just:
-        //unsigned char *data = new unsigned char[scr_width * scr_height * 3];
         glBindTexture(GL_TEXTURE_2D, renderedTexture);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
 
-        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, scr_width, scr_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.get());
-
         stbi_flip_vertically_on_write(true);
-        //int ret = stbi_write_jpg(filename.c_str(), scr_width, scr_height, 3, data.get(), 100);
         int ret = stbi_write_png(filename.c_str(), scr_width, scr_height, 4, data.get(), scr_width * 4);
         if (ret == 0)
         {
