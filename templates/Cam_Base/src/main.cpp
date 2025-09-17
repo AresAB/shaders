@@ -15,7 +15,8 @@
 #include <memory>
 #include <iostream>
 
-void processInput(GLFWwindow *window, glm::vec3& camPos, glm::vec3& camZ, glm::vec3& camUp, float& fov);
+void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov);
+glm::mat4 makePerspectiveMatrix(float fov, float aspect_ratio, float n, float f);
 void saveScreenshotToFile(std::string filename, GLFWwindow *window, int renderedTexture, int scr_width, int scr_height);
 
 int main(int argc, char *argv[])
@@ -154,13 +155,13 @@ int main(int argc, char *argv[])
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     return false;
 
-    glm::mat4 projection = glm::mat4(1.0f);
-    float fov = 0.785;
+    // create fov for perspective matrix calculation
+    // modify for different zoom levels
+    float perspective_fov = 0.785f;
 
-    glm::vec3 camPos = glm::vec3(0.0f, 0.0f,  3.0f);
-    glm::vec3 camZ = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::mat4 view = glm::mat4(1.0f);
+    // seperate view matrix components to allow for camera movement and rotation
+    glm::mat4 view_dir = glm::mat4(1.0f);
+    glm::mat4 view_loc = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
 
     glm::mat4 model = glm::mat4(1.0f);
     ourShader.setMat4("model", model);
@@ -171,7 +172,7 @@ int main(int argc, char *argv[])
     {
         // input
         // -----
-        processInput(window, camPos, camZ, camUp, fov);
+        processInput(window, view_dir, view_loc, perspective_fov);
         saveScreenshotToFile(SCR_SHOT_PATH, window, renderedTexture, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT);
 
         // render
@@ -183,13 +184,8 @@ int main(int argc, char *argv[])
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
 
-        // perspective transformation
-        projection = glm::perspective(fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        ourShader.setMat4("projection", projection); 
-
-        // camera/view transformation
-        view = glm::lookAt(camPos, camPos + camZ, camUp);
-        ourShader.setMat4("view", view);
+        ourShader.setMat4("view", view_dir * view_loc);
+        ourShader.setMat4("projection", makePerspectiveMatrix(perspective_fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f)); 
 
         // call shaders
         ourShader.use();
@@ -230,50 +226,72 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void processInput(GLFWwindow *window, glm::vec3& camPos, glm::vec3& camZ, glm::vec3& camUp, float& fov)
+void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov)
 {
     float spd = 0.0001f;
-    glm::vec3 camX = glm::normalize(glm::cross(camZ, camUp));
+
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         spd *= 5;
+    // camera movement
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camPos -= spd * camX;
+        view_loc = glm::translate(view_loc, spd * glm::vec3(view_dir[0][0], view_dir[1][0], view_dir[2][0]));
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camPos += spd * camX;
+        view_loc = glm::translate(view_loc, -spd * glm::vec3(view_dir[0][0], view_dir[1][0], view_dir[2][0]));
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camPos += spd * camZ;
+        view_loc = glm::translate(view_loc, spd * glm::vec3(view_dir[0][2], view_dir[1][2], view_dir[2][2]));
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camPos -= spd * camZ;
+        view_loc = glm::translate(view_loc, -spd * glm::vec3(view_dir[0][2], view_dir[1][2], view_dir[2][2]));
     if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
-        camPos += spd * glm::cross(camZ, camX);
+        view_loc = glm::translate(view_loc, spd * glm::vec3(view_dir[0][1], view_dir[1][1], view_dir[2][1]));
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
-        camPos -= spd * glm::cross(camZ, camX);
+        view_loc = glm::translate(view_loc, -spd * glm::vec3(view_dir[0][1], view_dir[1][1], view_dir[2][1]));
+    // camera rotation
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        camZ = glm::rotate(camZ, spd, glm::vec3(0.0f, 1.0f, 0.0f));
+        view_dir = glm::rotate(view_dir, spd, -glm::vec3(view_dir[0][1], view_dir[1][1], view_dir[2][1]));
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        camZ = glm::rotate(camZ, spd, glm::vec3(0.0f, -1.0f, 0.0f));
+        view_dir = glm::rotate(view_dir, spd, glm::vec3(view_dir[0][1], view_dir[1][1], view_dir[2][1]));
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        camZ = glm::rotate(camZ, spd, glm::vec3(1.0f, 0.0f, 0.0f));
+        view_dir = glm::rotate(view_dir, spd, -glm::vec3(view_dir[0][0], view_dir[1][0], view_dir[2][0]));
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        camZ = glm::rotate(camZ, spd, glm::vec3(-1.0f, 0.0f, 0.0f));
+        view_dir = glm::rotate(view_dir, spd, glm::vec3(view_dir[0][0], view_dir[1][0], view_dir[2][0]));
     if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
-        camUp = glm::rotate(camUp, spd, glm::vec3(0.0f, 0.0f, 1.0f));
+        view_dir = glm::rotate(view_dir, spd, glm::vec3(view_dir[0][2], view_dir[1][2], view_dir[2][2]));
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
-        camUp = glm::rotate(camUp, spd, glm::vec3(0.0f, 0.0f, -1.0f));
+        view_dir = glm::rotate(view_dir, spd, -glm::vec3(view_dir[0][2], view_dir[1][2], view_dir[2][2]));
+    // camera zoom
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        fov -= spd;
+        fov += spd * 0.5f;
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        fov += spd;
-    if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
-        fov = 0.785f;
-    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
-        camZ.x *= 0.0f;
-    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
-        camZ.y *= 0.0f;
+        fov -= spd * 0.5f;
+    // reset camera position
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-        camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+        view_loc = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+    // reset camera rotation
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
+        view_dir = glm::mat4(1.0f);
+    // reset camera fov
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+        fov = 0.785f;
+}
+
+// recreation of glm's perspective matrix with (l, r, b, t) inputs
+glm::mat4 makePerspectiveMatrix(float n, float f, float l, float r, float b, float t) {
+    glm::mat4 perspective = glm::mat4();
+    // remember that glm does matrix[c][r] format
+    perspective[0] = glm::vec4(2 * n / (r - l), 0.0f, 0.0f, 0.0f);
+    perspective[1] = glm::vec4(0.0f, 2 * n / (t - b), 0.0f, 0.0f);
+    perspective[2] = glm::vec4((r+l)/(r-l), (t+b)/(t-b), -(f+n)/(f-n), -1.0f);
+    perspective[3] = glm::vec4(0.0f, 0.0f, -(2 * f * n)/(f-n), 0.0f);
+    return perspective;
+}
+
+// recreation of glm's glm::perspective()
+glm::mat4 makePerspectiveMatrix(float fov, float aspect_ratio, float n, float f) {
+    float t = tan(fov * 0.5) * n;
+    float r = t * aspect_ratio;
+    return makePerspectiveMatrix(n, f, -r, r, -t, t);
 }
 
 void saveScreenshotToFile(std::string filename, GLFWwindow *window, int renderedTexture, int scr_width, int scr_height) {    
