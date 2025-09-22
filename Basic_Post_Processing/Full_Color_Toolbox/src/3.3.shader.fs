@@ -76,17 +76,17 @@ void main()
     // default is 1
     float exposure = 1.;
     // default is 0
-    float temperature = -0.3;
+    float temperature = 0.524;
     // default is 0
-    float tint = 0.;
+    float tint = 0.373;
     // default is 1
-    float contrast = 1;
+    float contrast = 1.341;
     // default is 0
     float brightness = 0.;
     // default is (1., 1., 1.)
     vec3 color_filter = vec3(1., 1., 1.);
     // default is 1
-    float saturation = 2.;
+    float saturation = 1.;
     // default is 1
     float gamma = 1;
 
