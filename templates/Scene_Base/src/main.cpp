@@ -9,12 +9,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <shader_s.h>
+#include <quad_s.h>
 #include <cube_s.h>
 
 #include <memory>
 #include <iostream>
 
-void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov);
+void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov, float& near, float& far);
 glm::mat4 makePerspectiveMatrix(float fov, float aspect_ratio, float n, float f);
 void saveScreenshotToFile(std::string filename, GLFWwindow *window, int renderedTexture, int scr_width, int scr_height);
 
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    // glfw window creation
+    // setup
     // --------------------
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
@@ -48,8 +49,6 @@ int main(int argc, char *argv[])
     }
     glfwMakeContextCurrent(window);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -58,25 +57,42 @@ int main(int argc, char *argv[])
 
     glEnable(GL_DEPTH_TEST);
 
-    // build and compile our shader program
-    // ------------------------------------
-    Shader ourShader("src/shader_vert.vs", "src/shader_frag.fs"); // you can name your shader files however you like
+    unsigned int frameBuffer = 0;
+    glGenFramebuffers(1, &frameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
-    // load and create a texture 
-    // -------------------------
+    unsigned int depthBuffer;
+    glGenRenderbuffers(1, &depthBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+
+    unsigned int renderedTexture;
+    glGenTextures(1, &renderedTexture);
+
+    glBindTexture(GL_TEXTURE_2D, renderedTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+
+    GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, DrawBuffers);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    return false;
+
+    Quad screen_quad = Quad();
+
+    // texture generation
+    // --------------------
     unsigned int texture1;
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1); 
-     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    // not all jpgs are made equally, if it causes a segmentation error just convert to png, it aint worth debugging
+    stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load("textures/guy.png", &width, &height, &nrChannels, 0);
     if (data)
     {
@@ -90,40 +106,32 @@ int main(int argc, char *argv[])
     }
     stbi_image_free(data);
 
-    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-    // -------------------------------------------------------------------------------------------
+    // shader generation
+    // --------------------
+    Shader ourShader("src/shader_vert.vs", "src/shader_frag.fs"); // you can name your shader files however you like
     ourShader.use(); // don't forget to activate/use the shader before setting uniforms!
     ourShader.setInt("texture1", 0);
 
-    // The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
-    unsigned int frameBuffer = 0;
-    glGenFramebuffers(1, &frameBuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-
-    unsigned int renderedTexture;
-    glGenTextures(1, &renderedTexture);
-
-    // "Bind" the newly created texture : all future texture functions will modify this texture
+    // post processing shader setup
+    // --------------------
     glBindTexture(GL_TEXTURE_2D, renderedTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    Shader post_shader("src/post_vert.vs", "src/post_frag.fs");
+    post_shader.use();
+    post_shader.setInt("scr_tex", 0);
 
-    // Give an empty image to OpenGL ( the last "0" )
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-
-    // Set "renderedTexture" as our colour attachement #0
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
-
-    // Set the list of draw buffers.
-    GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-    // "DrawBuffers" are where the fragment shader return to, this is basically saying return to our renderTexture
-    glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
-
-    // Always check that our framebuffer is ok
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    return false;
-
+    // rendering matricies setup
+    // --------------------
+    ourShader.use();
     // create fov for perspective matrix calculation
     // modify for different zoom levels
     float perspective_fov = 0.785f;
+    float near = 0.1f;
+    float far = 100.f;
 
     // seperate view matrix components to allow for camera movement and rotation
     glm::mat4 view_dir = glm::mat4(1.0f);
@@ -132,26 +140,32 @@ int main(int argc, char *argv[])
     glm::mat4 model = glm::mat4(1.0f);
     ourShader.setMat4("model", model);
 
+    // scene object(s) initialization
+    // --------------------
     Cube cube1 = Cube();
 
+    // render loop
+    // --------------------
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window, view_dir, view_loc, perspective_fov);
+        // input processing
+        // --------------------
+        processInput(window, view_dir, view_loc, perspective_fov, near, far);
         saveScreenshotToFile(SCR_SHOT_PATH, window, renderedTexture, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT);
+        // wireframe toggle
+        if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        // render to texture
+        // --------------------
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
 
         ourShader.use();
-
         ourShader.setMat4("view", view_dir * view_loc);
-        ourShader.setMat4("perspective", makePerspectiveMatrix(perspective_fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f)); 
+        ourShader.setMat4("perspective", makePerspectiveMatrix(perspective_fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far)); 
 
         glViewport(0, 0, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT);
-        // Rendering will now be done to renderedTexture
         glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -159,23 +173,35 @@ int main(int argc, char *argv[])
 
         cube1.render();
 
+        // render to screen
+        // --------------------
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wireframe
+
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-        // Rendering will now be done to screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        cube1.render();
+        glBindTexture(GL_TEXTURE_2D, renderedTexture);
+        post_shader.use();
 
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        screen_quad.render();
+
+        // poll for inputs and display screen buffer
+        // --------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    screen_quad.deallocate();
     cube1.deallocate();
 
     glfwTerminate();
     return 0;
 }
 
-void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov)
+void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov, float& near, float& far)
 {
     float spd = 0.0005f;
 
@@ -223,6 +249,15 @@ void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, 
     // reset camera fov
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
         fov = 0.785f;
+    // near and far plane distances
+    if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
+        near -= spd;
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+        near += spd;
+    if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
+        far -= 10 * spd;
+    if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
+        far += 10 * spd;
 }
 
 // recreation of glm's perspective matrix with (l, r, b, t) inputs
