@@ -15,6 +15,10 @@
 #include <memory>
 #include <iostream>
 
+glm::mat4 mat4RotY(float ang);
+glm::mat4 mat4RotX(float ang);
+glm::mat4 mat4Trans(float x, float y, float z);
+glm::mat4 mat4Scale(float x, float y, float z);
 unsigned int loadTexture(std::string filename, GLenum image_type);
 void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov, float& near, float& far);
 glm::mat4 makePerspectiveMatrix(float fov, float aspect_ratio, float n, float f);
@@ -100,7 +104,7 @@ int main(int argc, char *argv[])
     // scene setup (only section (aside from render loop) you should be touching)
     // --------------------
     // texture generation
-    unsigned int texture1 = loadTexture("textures/guy.png", GL_RGBA);
+    unsigned int texture1 = loadTexture("textures/creature.jpg", GL_RGB);
 
     // shader generation
     Shader ourShader("src/shader_vert.vs", "src/shader_frag.fs"); // you can name your shader files however you like
@@ -108,7 +112,11 @@ int main(int argc, char *argv[])
     ourShader.setInt("texture1", 0);
 
     // scene object(s) initialization
-    Cube cube1 = Cube();
+    Quad left_wall = Quad();
+    Quad top_wall = Quad();
+    Quad right_wall = Quad();
+    Quad bottom_wall = Quad();
+    Quad back_wall = Quad();
 
     // rendering matricies setup
     // --------------------
@@ -122,8 +130,24 @@ int main(int argc, char *argv[])
     glm::mat4 view_dir = glm::mat4(1.0f);
     glm::mat4 view_loc = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
 
+    float dist = 8;
     glm::mat4 model = glm::mat4(1.0f);
-    ourShader.setMat4("model", model);
+    glm::mat4 back_tsl = mat4Trans(0, 0, -dist);
+    glm::mat4 horiz_scale = mat4Scale(dist, 1, 1);
+    glm::mat4 vert_scale = mat4Scale(1, dist, 1);
+
+    float ang = 3.14/2;
+    glm::mat4 left_wall_rot = mat4RotY(ang);
+    glm::mat4 left_wall_tsl = mat4Trans(-1, 0, 0);
+
+    glm::mat4 right_wall_rot = mat4RotY(-ang);
+    glm::mat4 right_wall_tsl = mat4Trans(1, 0, 0);
+
+    glm::mat4 top_wall_rot = mat4RotX(ang);
+    glm::mat4 top_wall_tsl = mat4Trans(0, 1, 0);
+
+    glm::mat4 bottom_wall_rot = mat4RotX(-ang);
+    glm::mat4 bottom_wall_tsl = mat4Trans(0, -1, 0);
 
     // render loop
     // --------------------
@@ -151,7 +175,18 @@ int main(int argc, char *argv[])
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        cube1.render();
+        ourShader.setFloat("time", 0);
+        ourShader.setMat4("model", back_tsl * model);
+        back_wall.render();
+        ourShader.setFloat("time", glfwGetTime());
+        ourShader.setMat4("model",  left_wall_tsl * left_wall_rot * horiz_scale * model);
+        left_wall.render();
+        ourShader.setMat4("model", right_wall_tsl * right_wall_rot * horiz_scale * model);
+        right_wall.render();
+        ourShader.setMat4("model", top_wall_tsl * top_wall_rot * vert_scale * model);
+        top_wall.render();
+        ourShader.setMat4("model", bottom_wall_tsl * bottom_wall_rot * vert_scale * model);
+        top_wall.render();
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wireframe
 
@@ -175,10 +210,30 @@ int main(int argc, char *argv[])
     }
 
     screen_quad.deallocate();
-    cube1.deallocate();
+    left_wall.deallocate();
+    top_wall.deallocate();
+    right_wall.deallocate();
+    bottom_wall.deallocate();
+    back_wall.deallocate();
 
     glfwTerminate();
     return 0;
+}
+
+glm::mat4 mat4RotY(float ang) {
+    return glm::mat4(glm::vec4(cos(ang), 0., -sin(ang), 0.), glm::vec4(0., 1., 0., 0.), glm::vec4(sin(ang), 0., cos(ang), 0.), glm::vec4(0., 0., 0., 1.));
+}
+
+glm::mat4 mat4RotX(float ang) {
+    return glm::mat4(glm::vec4(1,0,0,0),glm::vec4(0,cos(ang),sin(ang),0),glm::vec4(0,-sin(ang),cos(ang),0),glm::vec4(0,0,0,1));
+}
+
+glm::mat4 mat4Trans(float x, float y, float z) {
+    return glm::mat4(glm::vec4(1,0,0,0),glm::vec4(0,1,0,0),glm::vec4(0,0,1,0),glm::vec4(x,y,z,1));
+}
+
+glm::mat4 mat4Scale(float x, float y, float z) {
+    return glm::mat4(glm::vec4(x,0,0,0),glm::vec4(0,y,0,0),glm::vec4(0,0,z,0),glm::vec4(0,0,0,1));
 }
 
 unsigned int loadTexture(std::string filename, GLenum image_type) {
