@@ -11,14 +11,11 @@
 #include <shader_s.h>
 #include <quad_s.h>
 #include <cube_s.h>
+#include <table_s.h>
 
 #include <memory>
 #include <iostream>
 
-glm::mat4 mat4RotY(float ang);
-glm::mat4 mat4RotX(float ang);
-glm::mat4 mat4Trans(float x, float y, float z);
-glm::mat4 mat4Scale(float x, float y, float z);
 unsigned int loadTexture(std::string filename, GLenum image_type);
 void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov, float& near, float& far);
 glm::mat4 makePerspectiveMatrix(float fov, float aspect_ratio, float n, float f);
@@ -104,7 +101,10 @@ int main(int argc, char *argv[])
     // scene setup (only section (aside from render loop) you should be touching)
     // --------------------
     // texture generation
-    unsigned int texture1 = loadTexture("textures/creature.jpg", GL_RGB);
+    unsigned int texture1 = loadTexture("textures/container.jpg", GL_RGB);
+    unsigned int texture2 = loadTexture("textures/guy.png", GL_RGBA);
+    unsigned int texture3 = loadTexture("textures/krait.png", GL_RGBA);
+    unsigned int texture4 = loadTexture("textures/end_times.png", GL_RGBA);
 
     // shader generation
     Shader ourShader("src/shader_vert.vs", "src/shader_frag.fs"); // you can name your shader files however you like
@@ -112,11 +112,10 @@ int main(int argc, char *argv[])
     ourShader.setInt("texture1", 0);
 
     // scene object(s) initialization
-    Quad left_wall = Quad();
-    Quad top_wall = Quad();
-    Quad right_wall = Quad();
-    Quad bottom_wall = Quad();
-    Quad back_wall = Quad();
+    Table table1 = Table();
+    Cube cube1 = Cube();
+    Cube cube2 = Cube();
+    Cube cube3 = Cube();
 
     // rendering matricies setup
     // --------------------
@@ -130,24 +129,16 @@ int main(int argc, char *argv[])
     glm::mat4 view_dir = glm::mat4(1.0f);
     glm::mat4 view_loc = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
 
-    float dist = 8;
     glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 back_tsl = mat4Trans(0, 0, -dist);
-    glm::mat4 horiz_scale = mat4Scale(dist, 1, 1);
-    glm::mat4 vert_scale = mat4Scale(1, dist, 1);
-
-    float ang = 3.14/2;
-    glm::mat4 left_wall_rot = mat4RotY(ang);
-    glm::mat4 left_wall_tsl = mat4Trans(-1, 0, 0);
-
-    glm::mat4 right_wall_rot = mat4RotY(-ang);
-    glm::mat4 right_wall_tsl = mat4Trans(1, 0, 0);
-
-    glm::mat4 top_wall_rot = mat4RotX(ang);
-    glm::mat4 top_wall_tsl = mat4Trans(0, 1, 0);
-
-    glm::mat4 bottom_wall_rot = mat4RotX(-ang);
-    glm::mat4 bottom_wall_tsl = mat4Trans(0, -1, 0);
+    glm::mat4 table1_model = glm::translate(model, glm::vec3(0,-1.25,0));
+    glm::mat4 cube1_model = glm::translate(model, glm::vec3(-0.5, 0, 1));
+    cube1_model = glm::scale(cube1_model, glm::vec3(0.25));
+    glm::mat4 cube2_model = glm::translate(model, glm::vec3(0.5,0.25,-0.25));
+    cube2_model = glm::rotate(cube2_model, -0.4f, glm::vec3(0,1,0));
+    cube2_model = glm::scale(cube2_model, glm::vec3(0.4, 0.5, 0.1));
+    glm::mat4 cube3_model = glm::translate(model, glm::vec3(0.55,-0.15,0.75));
+    cube3_model = glm::rotate(cube3_model, 0.3f, glm::vec3(0,1,0));
+    cube3_model = glm::scale(cube3_model, glm::vec3(0.4, 0.1, 0.2));
 
     // render loop
     // --------------------
@@ -163,7 +154,6 @@ int main(int argc, char *argv[])
         // render to texture
         // --------------------
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
 
         ourShader.use();
         ourShader.setMat4("view", view_dir * view_loc);
@@ -175,18 +165,18 @@ int main(int argc, char *argv[])
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        ourShader.setFloat("time", 0);
-        ourShader.setMat4("model", back_tsl * model);
-        back_wall.render();
-        ourShader.setFloat("time", glfwGetTime());
-        ourShader.setMat4("model",  left_wall_tsl * left_wall_rot * horiz_scale * model);
-        left_wall.render();
-        ourShader.setMat4("model", right_wall_tsl * right_wall_rot * horiz_scale * model);
-        right_wall.render();
-        ourShader.setMat4("model", top_wall_tsl * top_wall_rot * vert_scale * model);
-        top_wall.render();
-        ourShader.setMat4("model", bottom_wall_tsl * bottom_wall_rot * vert_scale * model);
-        top_wall.render();
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        ourShader.setMat4("model", table1_model);
+        table1.render();
+        glBindTexture(GL_TEXTURE_2D, texture2);
+        ourShader.setMat4("model", cube1_model);
+        cube1.render();
+        glBindTexture(GL_TEXTURE_2D, texture3);
+        ourShader.setMat4("model", cube2_model);
+        cube2.render();
+        glBindTexture(GL_TEXTURE_2D, texture4);
+        ourShader.setMat4("model", cube3_model);
+        cube3.render();
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wireframe
 
@@ -210,36 +200,16 @@ int main(int argc, char *argv[])
     }
 
     screen_quad.deallocate();
-    left_wall.deallocate();
-    top_wall.deallocate();
-    right_wall.deallocate();
-    bottom_wall.deallocate();
-    back_wall.deallocate();
+    table1.deallocate();
 
     glfwTerminate();
     return 0;
 }
 
-glm::mat4 mat4RotY(float ang) {
-    return glm::mat4(glm::vec4(cos(ang), 0., -sin(ang), 0.), glm::vec4(0., 1., 0., 0.), glm::vec4(sin(ang), 0., cos(ang), 0.), glm::vec4(0., 0., 0., 1.));
-}
-
-glm::mat4 mat4RotX(float ang) {
-    return glm::mat4(glm::vec4(1,0,0,0),glm::vec4(0,cos(ang),sin(ang),0),glm::vec4(0,-sin(ang),cos(ang),0),glm::vec4(0,0,0,1));
-}
-
-glm::mat4 mat4Trans(float x, float y, float z) {
-    return glm::mat4(glm::vec4(1,0,0,0),glm::vec4(0,1,0,0),glm::vec4(0,0,1,0),glm::vec4(x,y,z,1));
-}
-
-glm::mat4 mat4Scale(float x, float y, float z) {
-    return glm::mat4(glm::vec4(x,0,0,0),glm::vec4(0,y,0,0),glm::vec4(0,0,z,0),glm::vec4(0,0,0,1));
-}
-
 unsigned int loadTexture(std::string filename, GLenum image_type) {
-    unsigned int texture1;
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1); 
+    unsigned int tex_id;
+    glGenTextures(1, &tex_id);
+    glBindTexture(GL_TEXTURE_2D, tex_id); 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -257,7 +227,7 @@ unsigned int loadTexture(std::string filename, GLenum image_type) {
         std::cout << "Failed to load texture: " << filename << std::endl;
     }
     stbi_image_free(data);
-    return texture1;
+    return tex_id;
 }
 
 void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov, float& near, float& far)
