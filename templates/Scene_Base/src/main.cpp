@@ -112,10 +112,8 @@ int main(int argc, char *argv[])
     ourShader.setInt("texture1", 0);
 
     // scene object(s) initialization
-    Table table1 = Table();
-    Cube cube1 = Cube();
-    Cube cube2 = Cube();
-    Cube cube3 = Cube();
+    Table table = Table();
+    Cube cube = Cube();
 
     // rendering matricies setup
     // --------------------
@@ -131,7 +129,7 @@ int main(int argc, char *argv[])
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 table1_model = glm::translate(model, glm::vec3(0,-1.25,0));
-    glm::mat4 cube1_model = glm::translate(model, glm::vec3(-0.5, 0, 1));
+    glm::mat4 cube1_model = glm::translate(model, glm::vec3(-0.5, 0, 0));
     cube1_model = glm::scale(cube1_model, glm::vec3(0.25));
     glm::mat4 cube2_model = glm::translate(model, glm::vec3(0.5,0.25,-0.25));
     cube2_model = glm::rotate(cube2_model, -0.4f, glm::vec3(0,1,0));
@@ -167,16 +165,16 @@ int main(int argc, char *argv[])
 
         glBindTexture(GL_TEXTURE_2D, texture1);
         ourShader.setMat4("model", table1_model);
-        table1.render();
+        table.render();
         glBindTexture(GL_TEXTURE_2D, texture2);
         ourShader.setMat4("model", cube1_model);
-        cube1.render();
+        cube.render();
         glBindTexture(GL_TEXTURE_2D, texture3);
         ourShader.setMat4("model", cube2_model);
-        cube2.render();
+        cube.render();
         glBindTexture(GL_TEXTURE_2D, texture4);
         ourShader.setMat4("model", cube3_model);
-        cube3.render();
+        cube.render();
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wireframe
 
@@ -200,7 +198,8 @@ int main(int argc, char *argv[])
     }
 
     screen_quad.deallocate();
-    table1.deallocate();
+    table.deallocate();
+    cube.deallocate();
 
     glfwTerminate();
     return 0;

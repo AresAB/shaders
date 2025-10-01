@@ -7,164 +7,162 @@
 class Table {
 public:
     unsigned int VBO, VAO, EBO;
-    Table() {
-        float t_w = 0.25; // table width
-        float l_w = 0.2; // leg width
+    Table(float t_w = 0.25, float l_w = 0.2) { // table and leg width
         float vertices[] = {   
-            // positions          // texture coords
-             1.0f,  1.0f,  1.0f,  1.0f, 1.0f, // top right          0  
-             1.0f,  1.0f - t_w,  1.0f,  1.0f, 0.0f, // bottom right       1  
-            -1.0f,  1.0f - t_w,  1.0f,  0.0f, 0.0f, // bottom left        2  
-            -1.0f,  1.0f,  1.0f,  0.0f, 1.0f, // top left           3  
+            // positions                           // texture coords
+             1.0f,        1.0f,        1.0f,       1.0f, 1.0f, // top right          0  
+             1.0f,        1.0f - t_w,  1.0f,       1.0f, 0.0f, // bottom right       1  
+            -1.0f,        1.0f - t_w,  1.0f,       0.0f, 0.0f, // bottom left        2  
+            -1.0f,        1.0f,        1.0f,       0.0f, 1.0f, // top left           3  
 
-            -1.0f,  1.0f,  1.0f,  1.0f, 1.0f, // top left           4  
-            -1.0f,  1.0f - t_w,  1.0f,  1.0f, 0.0f, // bottom left        5  
-            -1.0f,  1.0f - t_w, -1.0f,  0.0f, 0.0f, // back bottom left   6  
-            -1.0f,  1.0f, -1.0f,  0.0f, 1.0f, // back top left      7  
+            -1.0f,        1.0f,        1.0f,       1.0f, 1.0f, // top left           4  
+            -1.0f,        1.0f - t_w,  1.0f,       1.0f, 0.0f, // bottom left        5  
+            -1.0f,        1.0f - t_w, -1.0f,       0.0f, 0.0f, // back bottom left   6  
+            -1.0f,        1.0f,       -1.0f,       0.0f, 1.0f, // back top left      7  
 
-             1.0f,  1.0f, -1.0f,  1.0f, 1.0f, // back top right     8  
-             1.0f,  1.0f - t_w, -1.0f,  1.0f, 0.0f, // back bottom right  9  
-            -1.0f,  1.0f - t_w, -1.0f,  0.0f, 0.0f, // back bottom left   10 
-            -1.0f,  1.0f, -1.0f,  0.0f, 1.0f, // back top left      11 
+             1.0f,        1.0f,       -1.0f,       1.0f, 1.0f, // back top right     8  
+             1.0f,        1.0f - t_w, -1.0f,       1.0f, 0.0f, // back bottom right  9  
+            -1.0f,        1.0f - t_w, -1.0f,       0.0f, 0.0f, // back bottom left   10 
+            -1.0f,        1.0f,       -1.0f,       0.0f, 1.0f, // back top left      11 
 
-             1.0f,  1.0f, -1.0f,  1.0f, 1.0f, // back top right     12 
-             1.0f,  1.0f - t_w, -1.0f,  1.0f, 0.0f, // back bottom right  13 
-             1.0f,  1.0f - t_w,  1.0f,  0.0f, 0.0f, // bottom right       14 
-             1.0f,  1.0f,  1.0f,  0.0f, 1.0f, // top right          15 
+             1.0f,        1.0f,       -1.0f,       1.0f, 1.0f, // back top right     12 
+             1.0f,        1.0f - t_w, -1.0f,       1.0f, 0.0f, // back bottom right  13 
+             1.0f,        1.0f - t_w,  1.0f,       0.0f, 0.0f, // bottom right       14 
+             1.0f,        1.0f,        1.0f,       0.0f, 1.0f, // top right          15 
 
-             1.0f,  1.0f, -1.0f,  1.0f, 1.0f, // back top right     16 
-             1.0f,  1.0f,  1.0f,  1.0f, 0.0f, // top right          17 
-            -1.0f,  1.0f,  1.0f,  0.0f, 0.0f, // top left           18 
-            -1.0f,  1.0f, -1.0f,  0.0f, 1.0f, // back top left      19 
+             1.0f,        1.0f,       -1.0f,       1.0f, 1.0f, // back top right     16 
+             1.0f,        1.0f,        1.0f,       1.0f, 0.0f, // top right          17 
+            -1.0f,        1.0f,        1.0f,       0.0f, 0.0f, // top left           18 
+            -1.0f,        1.0f,       -1.0f,       0.0f, 1.0f, // back top left      19 
 
-             1.0f,  1.0f - t_w, -1.0f,  1.0f, 1.0f, // back bottom right  20 
-             1.0f,  1.0f - t_w,  1.0f,  1.0f, 0.0f, // bottom right       21 
-            -1.0f,  1.0f - t_w,  1.0f,  0.0f, 0.0f, // bottom left        22 
-            -1.0f,  1.0f - t_w, -1.0f,  0.0f, 1.0f, // back bottom left   23 
+             1.0f,        1.0f - t_w, -1.0f,       1.0f, 1.0f, // back bottom right  20 
+             1.0f,        1.0f - t_w,  1.0f,       1.0f, 0.0f, // bottom right       21 
+            -1.0f,        1.0f - t_w,  1.0f,       0.0f, 0.0f, // bottom left        22 
+            -1.0f,        1.0f - t_w, -1.0f,       0.0f, 1.0f, // back bottom left   23 
 
-            // positions          // texture coords
-             -0.9f, 1.0f - t_w,  -0.9f,  1.0f, 1.0f, // top right          0  
-             -0.9f, -1.0f,  -0.9f,  1.0f, 0.0f, // bottom right       1  
-             -0.9f + l_w, -1.0,  -0.9f,  0.0f, 0.0f, // bottom left        2  
-             -0.9f + l_w, 1.0f - t_w,  -0.9f,  0.0f, 1.0f, // top left           3  
+            // positions                           // texture coords
+            -0.9f,        1.0f - t_w, -0.9f,       1.0f, 1.0f, // top right          0  
+            -0.9f,       -1.0f,       -0.9f,       1.0f, 0.0f, // bottom right       1  
+            -0.9f + l_w, -1.0,        -0.9f,       0.0f, 0.0f, // bottom left        2  
+            -0.9f + l_w,  1.0f - t_w, -0.9f,       0.0f, 1.0f, // top left           3  
 
-             -0.9f + l_w, 1.0f - t_w,  -0.9f,  1.0f, 1.0f, // top left           4  
-             -0.9f + l_w, -1.0f,  -0.9f,  1.0f, 0.0f, // bottom left        5  
-             -0.9f + l_w, -1.0f, -0.9f + l_w,  0.0f, 0.0f, // back bottom left   6  
-             -0.9f + l_w, 1.0f - t_w, -0.9f + l_w,  0.0f, 1.0f, // back top left      7  
+            -0.9f + l_w,  1.0f - t_w, -0.9f,       1.0f, 1.0f, // top left           4  
+            -0.9f + l_w, -1.0f,       -0.9f,       1.0f, 0.0f, // bottom left        5  
+            -0.9f + l_w, -1.0f,       -0.9f + l_w, 0.0f, 0.0f, // back bottom left   6  
+            -0.9f + l_w,  1.0f - t_w, -0.9f + l_w, 0.0f, 1.0f, // back top left      7  
 
-             -0.9f, 1.0f - t_w, -0.9f + l_w,  1.0f, 1.0f, // back top right     8  
-             -0.9f, -1.0f, -0.9f + l_w,  1.0f, 0.0f, // back bottom right  9  
-             -0.9f + l_w, -1.0f, -0.9f + l_w,  0.0f, 0.0f, // back bottom left   10 
-             -0.9f + l_w, 1.0f - t_w, -0.9f + l_w,  0.0f, 1.0f, // back top left      11 
+            -0.9f,        1.0f - t_w, -0.9f + l_w, 1.0f, 1.0f, // back top right     8  
+            -0.9f,       -1.0f,       -0.9f + l_w, 1.0f, 0.0f, // back bottom right  9  
+            -0.9f + l_w, -1.0f,       -0.9f + l_w, 0.0f, 0.0f, // back bottom left   10 
+            -0.9f + l_w,  1.0f - t_w, -0.9f + l_w, 0.0f, 1.0f, // back top left      11 
 
-             -0.9f, 1.0f - t_w, -0.9f + l_w,  1.0f, 1.0f, // back top right     12 
-             -0.9f, -1.0f, -0.9f + l_w,  1.0f, 0.0f, // back bottom right  13 
-             -0.9f, -1.0f,  -0.9f,  0.0f, 0.0f, // bottom right       14 
-             -0.9f, 1.0f - t_w,  -0.9f,  0.0f, 1.0f, // top right          15 
+            -0.9f,        1.0f - t_w, -0.9f + l_w, 1.0f, 1.0f, // back top right     12 
+            -0.9f,       -1.0f,       -0.9f + l_w, 1.0f, 0.0f, // back bottom right  13 
+            -0.9f,       -1.0f,       -0.9f,       0.0f, 0.0f, // bottom right       14 
+            -0.9f,        1.0f - t_w, -0.9f,       0.0f, 1.0f, // top right          15 
 
-             -0.9f, 1.0f - t_w, -0.9f + l_w,  1.0f, 1.0f, // back top right     16 
-             -0.9f, 1.0f - t_w, -0.9f,  1.0f, 0.0f, // top right          17 
-             -0.9f + l_w, 1.0f - t_w,  -0.9f,  0.0f, 0.0f, // top left           18 
-             -0.9f + l_w, 1.0f - t_w, -0.9f + l_w,  0.0f, 1.0f, // back top left      19 
+            -0.9f,        1.0f - t_w, -0.9f + l_w, 1.0f, 1.0f, // back top right     16 
+            -0.9f,        1.0f - t_w, -0.9f,       1.0f, 0.0f, // top right          17 
+            -0.9f + l_w,  1.0f - t_w, -0.9f,       0.0f, 0.0f, // top left           18 
+            -0.9f + l_w,  1.0f - t_w, -0.9f + l_w, 0.0f, 1.0f, // back top left      19 
 
-             -0.9f,  -1.0f, -0.9f + l_w,  1.0f, 1.0f, // back bottom right  20 
-             -0.9f,  -1.0f, -0.9f,  1.0f, 0.0f, // bottom right       21 
-             -0.9f + l_w,  -1.0f, -0.9f,  0.0f, 0.0f, // bottom left        22 
-             -0.9f + l_w,  -1.0f, -0.9f + l_w,  0.0f, 1.0f, // back bottom left   23 
+            -0.9f,       -1.0f,       -0.9f + l_w, 1.0f, 1.0f, // back bottom right  20 
+            -0.9f,       -1.0f,       -0.9f,       1.0f, 0.0f, // bottom right       21 
+            -0.9f + l_w, -1.0f,       -0.9f,       0.0f, 0.0f, // bottom left        22 
+            -0.9f + l_w, -1.0f,       -0.9f + l_w, 0.0f, 1.0f, // back bottom left   23 
 
-            // positions          // texture coords
-             -0.9f, 1.0f - t_w,  0.9f,  1.0f, 1.0f, // top right          0  
-             -0.9f, -1.0f,  0.9f,  1.0f, 0.0f, // bottom right       1  
-             -0.9f + l_w, -1.0f,  0.9f,  0.0f, 0.0f, // bottom left        2  
-             -0.9f + l_w, 1.0f - t_w,  0.9f,  0.0f, 1.0f, // top left           3  
+            // positions                           // texture coords
+            -0.9f,        1.0f - t_w,  0.9f,       1.0f, 1.0f, // top right          0  
+            -0.9f,       -1.0f,        0.9f,       1.0f, 0.0f, // bottom right       1  
+            -0.9f + l_w, -1.0f,        0.9f,       0.0f, 0.0f, // bottom left        2  
+            -0.9f + l_w,  1.0f - t_w,  0.9f,       0.0f, 1.0f, // top left           3  
 
-             -0.9f + l_w, 1.0f - t_w,  0.9f,  1.0f, 1.0f, // top left           4  
-             -0.9f + l_w, -1.0f,  0.9f,  1.0f, 0.0f, // bottom left        5  
-             -0.9f + l_w, -1.0f, 0.9f - l_w,  0.0f, 0.0f, // back bottom left   6  
-             -0.9f + l_w, 1.0f - t_w, 0.9f - l_w,  0.0f, 1.0f, // back top left      7  
+            -0.9f + l_w,  1.0f - t_w,  0.9f,       1.0f, 1.0f, // top left           4  
+            -0.9f + l_w, -1.0f,        0.9f,       1.0f, 0.0f, // bottom left        5  
+            -0.9f + l_w, -1.0f,        0.9f - l_w, 0.0f, 0.0f, // back bottom left   6  
+            -0.9f + l_w,  1.0f - t_w,  0.9f - l_w, 0.0f, 1.0f, // back top left      7  
 
-             -0.9f, 1.0f - t_w, 0.9f - l_w,  1.0f, 1.0f, // back top right     8  
-             -0.9f, -1.0f, 0.9f - l_w,  1.0f, 0.0f, // back bottom right  9  
-             -0.9f + l_w, -1.0f, 0.9f - l_w,  0.0f, 0.0f, // back bottom left   10 
-             -0.9f + l_w, 1.0f - t_w, 0.9f - l_w,  0.0f, 1.0f, // back top left      11 
+            -0.9f,        1.0f - t_w,  0.9f - l_w, 1.0f, 1.0f, // back top right     8  
+            -0.9f,       -1.0f,        0.9f - l_w, 1.0f, 0.0f, // back bottom right  9  
+            -0.9f + l_w, -1.0f,        0.9f - l_w, 0.0f, 0.0f, // back bottom left   10 
+            -0.9f + l_w,  1.0f - t_w,  0.9f - l_w, 0.0f, 1.0f, // back top left      11 
 
-             -0.9f, 1.0f - t_w, 0.9f - l_w,  1.0f, 1.0f, // back top right     12 
-             -0.9f, -1.0f, 0.9f - l_w,  1.0f, 0.0f, // back bottom right  13 
-             -0.9f, -1.0f,  0.9f,  0.0f, 0.0f, // bottom right       14 
-             -0.9f, 1.0f - t_w,  0.9f,  0.0f, 1.0f, // top right          15 
+            -0.9f,        1.0f - t_w,  0.9f - l_w, 1.0f, 1.0f, // back top right     12 
+            -0.9f,       -1.0f,        0.9f - l_w, 1.0f, 0.0f, // back bottom right  13 
+            -0.9f,       -1.0f,        0.9f,       0.0f, 0.0f, // bottom right       14 
+            -0.9f,        1.0f - t_w,  0.9f,       0.0f, 1.0f, // top right          15 
 
-             -0.9f, 1.0f - t_w, 0.9f - l_w,  1.0f, 1.0f, // back top right     16 
-             -0.9f, 1.0f - t_w, 0.9f,  1.0f, 0.0f, // top right          17 
-             -0.9f + l_w, 1.0f - t_w,  0.9f,  0.0f, 0.0f, // top left           18 
-             -0.9f + l_w, 1.0f - t_w, 0.9f - l_w,  0.0f, 1.0f, // back top left      19 
+            -0.9f,        1.0f - t_w,  0.9f - l_w, 1.0f, 1.0f, // back top right     16 
+            -0.9f,        1.0f - t_w,  0.9f,       1.0f, 0.0f, // top right          17 
+            -0.9f + l_w,  1.0f - t_w,  0.9f,       0.0f, 0.0f, // top left           18 
+            -0.9f + l_w,  1.0f - t_w,  0.9f - l_w, 0.0f, 1.0f, // back top left      19 
 
-             -0.9f,  -1.0f, 0.9f - l_w,  1.0f, 1.0f, // back bottom right  20 
-             -0.9f,  -1.0f, 0.9f,  1.0f, 0.0f, // bottom right       21 
-             -0.9f + l_w,  -1.0f, 0.9f,  0.0f, 0.0f, // bottom left        22 
-             -0.9f + l_w,  -1.0f, 0.9f - l_w,  0.0f, 1.0f, // back bottom left   23 
-
-            // positions          // texture coords
-             0.9f, 1.0f - t_w,  -0.9f,  1.0f, 1.0f, // top right          0  
-             0.9f, -1.0f,  -0.9f,  1.0f, 0.0f, // bottom right       1  
-             0.9f - l_w, -1.0f,  -0.9f,  0.0f, 0.0f, // bottom left        2  
-             0.9f - l_w, 1.0f - t_w,  -0.9f,  0.0f, 1.0f, // top left           3  
-
-             0.9f - l_w, 1.0f - t_w,  -0.9f,  1.0f, 1.0f, // top left           4  
-             0.9f - l_w, -1.0f,  -0.9f,  1.0f, 0.0f, // bottom left        5  
-             0.9f - l_w, -1.0f, -0.9f + l_w,  0.0f, 0.0f, // back bottom left   6  
-             0.9f - l_w, 1.0f - t_w, -0.9f + l_w,  0.0f, 1.0f, // back top left      7  
-
-             0.9f, 1.0f - t_w, -0.9f + l_w,  1.0f, 1.0f, // back top right     8  
-             0.9f, -1.0f, -0.9f + l_w,  1.0f, 0.0f, // back bottom right  9  
-             0.9f - l_w, -1.0f, -0.9f + l_w,  0.0f, 0.0f, // back bottom left   10 
-             0.9f - l_w, 1.0f - t_w, -0.9f + l_w,  0.0f, 1.0f, // back top left      11 
-
-             0.9f, 1.0f - t_w, -0.9f + l_w,  1.0f, 1.0f, // back top right     12 
-             0.9f, -1.0f, -0.9f + l_w,  1.0f, 0.0f, // back bottom right  13 
-             0.9f, -1.0f,  -0.9f,  0.0f, 0.0f, // bottom right       14 
-             0.9f, 1.0f - t_w,  -0.9f,  0.0f, 1.0f, // top right          15 
-
-             0.9f, 1.0f - t_w, -0.9f + l_w,  1.0f, 1.0f, // back top right     16 
-             0.9f, 1.0f - t_w, -0.9f,  1.0f, 0.0f, // top right          17 
-             0.9f - l_w, 1.0f - t_w,  -0.9f,  0.0f, 0.0f, // top left           18 
-             0.9f - l_w, 1.0f - t_w, -0.9f + l_w,  0.0f, 1.0f, // back top left      19 
-
-             0.9f,  -1.0f, -0.9f + l_w,  1.0f, 1.0f, // back bottom right  20 
-             0.9f,  -1.0f, -0.9f,  1.0f, 0.0f, // bottom right       21 
-             0.9f - l_w,  -1.0f, -0.9f,  0.0f, 0.0f, // bottom left        22 
-             0.9f - l_w,  -1.0f, -0.9f + l_w,  0.0f, 1.0f, // back bottom left   23 
+            -0.9f,       -1.0f,        0.9f - l_w, 1.0f, 1.0f, // back bottom right  20 
+            -0.9f,       -1.0f,        0.9f,       1.0f, 0.0f, // bottom right       21 
+            -0.9f + l_w, -1.0f,        0.9f,       0.0f, 0.0f, // bottom left        22 
+            -0.9f + l_w, -1.0f,        0.9f - l_w, 0.0f, 1.0f, // back bottom left   23 
 
             // positions          // texture coords
-             0.9f, 1.0f - t_w,  0.9f,  1.0f, 1.0f, // top right          0  
-             0.9f, -1.0f,  0.9f,  1.0f, 0.0f, // bottom right       1  
-             0.9f - l_w, -1.0f,  0.9f,  0.0f, 0.0f, // bottom left        2  
-             0.9f - l_w, 1.0f - t_w,  0.9f,  0.0f, 1.0f, // top left           3  
+             0.9f,        1.0f - t_w, -0.9f,       1.0f, 1.0f, // top right          0  
+             0.9f,       -1.0f,       -0.9f,       1.0f, 0.0f, // bottom right       1  
+             0.9f - l_w, -1.0f,       -0.9f,       0.0f, 0.0f, // bottom left        2  
+             0.9f - l_w,  1.0f - t_w, -0.9f,       0.0f, 1.0f, // top left           3  
 
-             0.9f - l_w, 1.0f - t_w,  0.9f,  1.0f, 1.0f, // top left           4  
-             0.9f - l_w, -1.0f,  0.9f,  1.0f, 0.0f, // bottom left        5  
-             0.9f - l_w, -1.0f, 0.9f - l_w,  0.0f, 0.0f, // back bottom left   6  
-             0.9f - l_w, 1.0f - t_w, 0.9f - l_w,  0.0f, 1.0f, // back top left      7  
+             0.9f - l_w,  1.0f - t_w, -0.9f,       1.0f, 1.0f, // top left           4  
+             0.9f - l_w, -1.0f,       -0.9f,       1.0f, 0.0f, // bottom left        5  
+             0.9f - l_w, -1.0f,       -0.9f + l_w, 0.0f, 0.0f, // back bottom left   6  
+             0.9f - l_w,  1.0f - t_w, -0.9f + l_w, 0.0f, 1.0f, // back top left      7  
 
-             0.9f, 1.0f - t_w, 0.9f - l_w,  1.0f, 1.0f, // back top right     8  
-             0.9f, -1.0f, 0.9f - l_w,  1.0f, 0.0f, // back bottom right  9  
-             0.9f - l_w, -1.0f, 0.9f - l_w,  0.0f, 0.0f, // back bottom left   10 
-             0.9f - l_w, 1.0f - t_w, 0.9f - l_w,  0.0f, 1.0f, // back top left      11 
+             0.9f,        1.0f - t_w, -0.9f + l_w, 1.0f, 1.0f, // back top right     8  
+             0.9f,       -1.0f,       -0.9f + l_w, 1.0f, 0.0f, // back bottom right  9  
+             0.9f - l_w, -1.0f,       -0.9f + l_w, 0.0f, 0.0f, // back bottom left   10 
+             0.9f - l_w,  1.0f - t_w, -0.9f + l_w, 0.0f, 1.0f, // back top left      11 
 
-             0.9f, 1.0f - t_w, 0.9f - l_w,  1.0f, 1.0f, // back top right     12 
-             0.9f, -1.0f, 0.9f - l_w,  1.0f, 0.0f, // back bottom right  13 
-             0.9f, -1.0f,  0.9f,  0.0f, 0.0f, // bottom right       14 
-             0.9f, 1.0f - t_w,  0.9f,  0.0f, 1.0f, // top right          15 
+             0.9f,        1.0f - t_w, -0.9f + l_w, 1.0f, 1.0f, // back top right     12 
+             0.9f,       -1.0f,       -0.9f + l_w, 1.0f, 0.0f, // back bottom right  13 
+             0.9f,       -1.0f,       -0.9f,       0.0f, 0.0f, // bottom right       14 
+             0.9f,        1.0f - t_w, -0.9f,       0.0f, 1.0f, // top right          15 
 
-             0.9f, 1.0f - t_w, 0.9f - l_w,  1.0f, 1.0f, // back top right     16 
-             0.9f, 1.0f - t_w, 0.9f,  1.0f, 0.0f, // top right          17 
-             0.9f - l_w, 1.0f - t_w,  0.9f,  0.0f, 0.0f, // top left           18 
-             0.9f - l_w, 1.0f - t_w, 0.9f - l_w,  0.0f, 1.0f, // back top left      19 
+             0.9f,        1.0f - t_w, -0.9f + l_w, 1.0f, 1.0f, // back top right     16 
+             0.9f,        1.0f - t_w, -0.9f,       1.0f, 0.0f, // top right          17 
+             0.9f - l_w,  1.0f - t_w, -0.9f,       0.0f, 0.0f, // top left           18 
+             0.9f - l_w,  1.0f - t_w, -0.9f + l_w, 0.0f, 1.0f, // back top left      19 
 
-             0.9f,  -1.0f, 0.9f - l_w,  1.0f, 1.0f, // back bottom right  20 
-             0.9f,  -1.0f, 0.9f,  1.0f, 0.0f, // bottom right       21 
-             0.9f - l_w,  -1.0f, 0.9f,  0.0f, 0.0f, // bottom left        22 
-             0.9f - l_w,  -1.0f, 0.9f - l_w,  0.0f, 1.0f, // back bottom left   23 
+             0.9f,       -1.0f,       -0.9f + l_w, 1.0f, 1.0f, // back bottom right  20 
+             0.9f,       -1.0f,       -0.9f,       1.0f, 0.0f, // bottom right       21 
+             0.9f - l_w, -1.0f,       -0.9f,       0.0f, 0.0f, // bottom left        22 
+             0.9f - l_w, -1.0f,       -0.9f + l_w, 0.0f, 1.0f, // back bottom left   23 
+
+            // positions          // texture coords
+             0.9f,        1.0f - t_w,  0.9f,       1.0f, 1.0f, // top right          0  
+             0.9f,       -1.0f,        0.9f,       1.0f, 0.0f, // bottom right       1  
+             0.9f - l_w, -1.0f,        0.9f,       0.0f, 0.0f, // bottom left        2  
+             0.9f - l_w,  1.0f - t_w,  0.9f,       0.0f, 1.0f, // top left           3  
+
+             0.9f - l_w,  1.0f - t_w,  0.9f,       1.0f, 1.0f, // top left           4  
+             0.9f - l_w, -1.0f,        0.9f,       1.0f, 0.0f, // bottom left        5  
+             0.9f - l_w, -1.0f,        0.9f - l_w, 0.0f, 0.0f, // back bottom left   6  
+             0.9f - l_w,  1.0f - t_w,  0.9f - l_w, 0.0f, 1.0f, // back top left      7  
+
+             0.9f,        1.0f - t_w,  0.9f - l_w, 1.0f, 1.0f, // back top right     8  
+             0.9f,       -1.0f,        0.9f - l_w, 1.0f, 0.0f, // back bottom right  9  
+             0.9f - l_w, -1.0f,        0.9f - l_w, 0.0f, 0.0f, // back bottom left   10 
+             0.9f - l_w,  1.0f - t_w,  0.9f - l_w, 0.0f, 1.0f, // back top left      11 
+
+             0.9f,        1.0f - t_w,  0.9f - l_w, 1.0f, 1.0f, // back top right     12 
+             0.9f,       -1.0f,        0.9f - l_w, 1.0f, 0.0f, // back bottom right  13 
+             0.9f,       -1.0f,        0.9f,       0.0f, 0.0f, // bottom right       14 
+             0.9f,        1.0f - t_w,  0.9f,       0.0f, 1.0f, // top right          15 
+
+             0.9f,        1.0f - t_w,  0.9f - l_w, 1.0f, 1.0f, // back top right     16 
+             0.9f,        1.0f - t_w,  0.9f,       1.0f, 0.0f, // top right          17 
+             0.9f - l_w,  1.0f - t_w,  0.9f,       0.0f, 0.0f, // top left           18 
+             0.9f - l_w,  1.0f - t_w,  0.9f - l_w, 0.0f, 1.0f, // back top left      19 
+
+             0.9f,       -1.0f,        0.9f - l_w, 1.0f, 1.0f, // back bottom right  20 
+             0.9f,       -1.0f,        0.9f,       1.0f, 0.0f, // bottom right       21 
+             0.9f - l_w, -1.0f,        0.9f,       0.0f, 0.0f, // bottom left        22 
+             0.9f - l_w, -1.0f,        0.9f - l_w, 0.0f, 1.0f, // back bottom left   23 
         };
         unsigned int indices[] = {  
             0, 1, 3,     // front:  first triangle
