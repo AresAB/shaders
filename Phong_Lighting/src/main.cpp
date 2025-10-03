@@ -139,6 +139,8 @@ int main(int argc, char *argv[])
     glm::mat4 lamp1_model;
 
     glm::mat4 table1_model = glm::translate(model, glm::vec3(0,-1.25,0));
+    glm::mat4 table1_normal = glm::transpose(glm::inverse(glm::mat3(table1_model)));
+
     glm::mat4 cube1_model = glm::translate(model, glm::vec3(-0.5, 0, 0));
     cube1_model = glm::scale(cube1_model, glm::vec3(0.25));
     glm::mat4 cube1_normal = glm::transpose(glm::inverse(glm::mat3(cube1_model)));
@@ -191,26 +193,52 @@ int main(int argc, char *argv[])
         cube.render();
 
         ourShader.use();
-        ourShader.setVec3("light_pos", light_pos);
-        ourShader.setVec3("light_col", light_col);
+        ourShader.setVec3("light.pos", light_pos);
+        ourShader.setVec3("light.ambient", light_col * 0.6f);
+        ourShader.setVec3("light.diffuse", light_col * 0.9f);
+        ourShader.setVec3("light.specular", glm::vec3(1.0f));
         ourShader.setMat4("view", view);
         ourShader.setMat4("perspective", perspective); 
-        ourShader.setVec3("view_pos", glm::vec3(view_loc[3]));
+        ourShader.setVec3("view_pos", -glm::vec3(view_loc[3]));
 
         glBindTexture(GL_TEXTURE_2D, texture2);
         ourShader.setMat4("model", cube1_model);
         ourShader.setMat3("norm_mat", cube1_normal);
+        // obsidian (http://devernay.free.fr/cours/opengl/materials.html)
+        ourShader.setFloat("material.shininess", 128 * .3);
+        ourShader.setVec3("material.ambient", glm::vec3(0.05375, 0.05, 0.06625));
+        ourShader.setVec3("material.diffuse", glm::vec3(0.18275, 0.17, 0.22525));
+        ourShader.setVec3("material.specular", glm::vec3(0.332741, 0.328634, 0.346435));
         cube.render();
+
         glBindTexture(GL_TEXTURE_2D, texture3);
         ourShader.setMat4("model", cube2_model);
         ourShader.setMat3("norm_mat", cube2_normal);
+        // pearl
+        ourShader.setFloat("material.shininess", 128 * 0.088);
+        ourShader.setVec3("material.ambient", glm::vec3(0.25, 0.20725, 0.20725));
+        ourShader.setVec3("material.diffuse", glm::vec3(1, 0.829, 0.829));
+        ourShader.setVec3("material.specular", glm::vec3(0.296648));
         cube.render();
+
         glBindTexture(GL_TEXTURE_2D, texture4);
         ourShader.setMat4("model", cube3_model);
         ourShader.setMat3("norm_mat", cube3_normal);
+        // chrome
+        ourShader.setFloat("material.shininess", 128 * .6);
+        ourShader.setVec3("material.ambient", glm::vec3(0.25));
+        ourShader.setVec3("material.diffuse", glm::vec3(0.4));
+        ourShader.setVec3("material.specular", glm::vec3(0.774597));
         cube.render();
+
         glBindTexture(GL_TEXTURE_2D, texture1);
         ourShader.setMat4("model", table1_model);
+        ourShader.setMat3("norm_mat", table1_normal);
+        // gold
+        ourShader.setFloat("material.shininess", 128 * .4);
+        ourShader.setVec3("material.ambient", glm::vec3(0.24725, 0.1995, 0.0745));
+        ourShader.setVec3("material.diffuse", glm::vec3(0.75164, 0.60648, 0.22648));
+        ourShader.setVec3("material.specular", glm::vec3(0.628281, 0.555802, 0.366065));
         table.render();
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wireframe
