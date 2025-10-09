@@ -101,40 +101,62 @@ int main(int argc, char *argv[])
     // scene setup (only section (aside from render loop) you should be touching)
     // --------------------
     // texture generation
-    unsigned int texture1 = loadTexture("textures/container.jpg", GL_RGB);
-    unsigned int texture2 = loadTexture("textures/guy.png", GL_RGBA);
-    unsigned int texture3 = loadTexture("textures/krait.png", GL_RGBA);
-    unsigned int texture4 = loadTexture("textures/end_times.png", GL_RGBA);
+    unsigned int texture1 = loadTexture("textures/container2.png", GL_RGBA);
+    unsigned int texture2 = loadTexture("textures/container2_specular.png", GL_RGBA);
 
     // shader generation
+    Shader lightShader("src/light_vert.vs", "src/light_frag.fs");
+
     Shader ourShader("src/shader_vert.vs", "src/shader_frag.fs"); // you can name your shader files however you like
+    ourShader.use(); // don't forget to activate/use the shader before setting uniforms!
+    ourShader.setInt("texture1", 0);
 
     // scene object(s) initialization
     Table table = Table();
     Cube cube = Cube();
 
+    // uniforms
+    glm::vec3 light_pos;
+    glm::vec3 light_col;
+    
+    ourShader.setInt("material.diffuse", 0);
+    ourShader.setInt("material.specular", 1);
+
     // rendering matricies setup
     // --------------------
+    ourShader.use();
     // create fov for perspective matrix calculation
     float perspective_fov = 0.785f; // modify for different zoom levels
     float near = 0.1f; // near plane z
     float far = 100.f; // far plane z
+    glm::mat4 perspective = makePerspectiveMatrix(perspective_fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 
     // seperate view matrix components to allow for camera movement and rotation
     glm::mat4 view_dir = glm::mat4(1.0f);
-    glm::mat4 view_loc = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+    glm::mat4 view_loc = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.2f, -3.0f));
+    glm::mat4 view = view_dir * view_loc;
 
     glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 lamp1_model;
+
     glm::mat4 table1_model = glm::translate(model, glm::vec3(0,-1.25,0));
+    glm::mat4 table1_normal = glm::transpose(glm::inverse(glm::mat3(table1_model)));
+
     glm::mat4 cube1_model = glm::translate(model, glm::vec3(-0.5, 0, 0));
     cube1_model = glm::scale(cube1_model, glm::vec3(0.25));
+    glm::mat4 cube1_normal = glm::transpose(glm::inverse(glm::mat3(cube1_model)));
+
     glm::mat4 cube2_model = glm::translate(model, glm::vec3(0.5,0.25,-0.25));
     cube2_model = glm::rotate(cube2_model, -0.4f, glm::vec3(0,1,0));
     cube2_model = glm::scale(cube2_model, glm::vec3(0.4, 0.5, 0.1));
+    glm::mat4 cube2_normal = glm::transpose(glm::inverse(glm::mat3(cube2_model)));
+
     glm::mat4 cube3_model = glm::translate(model, glm::vec3(0.55,-0.15,0.75));
     cube3_model = glm::rotate(cube3_model, 0.3f, glm::vec3(0,1,0));
     cube3_model = glm::scale(cube3_model, glm::vec3(0.4, 0.1, 0.2));
+    glm::mat4 cube3_normal = glm::transpose(glm::inverse(glm::mat3(cube3_model)));
 
+    glm::vec3 new_light_pos;
     // render loop
     // --------------------
     while (!glfwWindowShouldClose(window))
@@ -146,42 +168,79 @@ int main(int argc, char *argv[])
         if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // toggle wireframe
 
-        glActiveTexture(GL_TEXTURE0);
-
         // render to texture
         // --------------------
-        ourShader.use();
-        ourShader.setMat4("view", view_dir * view_loc);
-        ourShader.setMat4("perspective", makePerspectiveMatrix(perspective_fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far)); 
-
         glViewport(0, 0, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        view = view_dir * view_loc;
+        perspective = makePerspectiveMatrix(perspective_fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+
+        light_col = glm::vec3(0.33 * (sin(0.125 * glfwGetTime()) + 2));
+        light_pos = glm::vec3(1.5 + 1.5 * (sin(0.5 * glfwGetTime()) - 1.), 0., 1.2 + 1.2 * (cos(0.5 * glfwGetTime()) - 1.));
+        lamp1_model = glm::translate(model, light_pos);
+        lamp1_model = glm::scale(lamp1_model, glm::vec3(0.05));
+
+        lightShader.use();
+        lightShader.setMat4("model", lamp1_model);
+        lightShader.setMat4("view", view);
+        lightShader.setMat4("perspective", perspective); 
+        lightShader.setVec3("light_col", light_col);
+        cube.render();
+
+        ourShader.use();
+        ourShader.setVec3("light.pos", light_pos);
+        ourShader.setVec3("light.ambient", light_col * 0.6f);
+        ourShader.setVec3("light.diffuse", light_col * 0.9f);
+        ourShader.setVec3("light.specular", glm::vec3(1.0f));
+        ourShader.setFloat("light.spec_falloff", 1);
+        ourShader.setMat4("view", view);
+        ourShader.setMat4("perspective", perspective); 
+        ourShader.setVec3("view_pos", -glm::vec3(view_loc[3]));
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
+
+        ourShader.setMat4("model", cube1_model);
+        ourShader.setMat3("norm_mat", cube1_normal);
+        // obsidian (http://devernay.free.fr/cours/opengl/materials.html)
+        ourShader.setFloat("material.shininess", 128 * .3);
+        cube.render();
+
+        ourShader.setMat4("model", cube2_model);
+        ourShader.setMat3("norm_mat", cube2_normal);
+        // pearl
+        ourShader.setFloat("material.shininess", 128 * 0.088);
+        cube.render();
+
+        ourShader.setMat4("model", cube3_model);
+        ourShader.setMat3("norm_mat", cube3_normal);
+        // chrome
+        ourShader.setFloat("material.shininess", 128 * .6);
+        cube.render();
+
         glBindTexture(GL_TEXTURE_2D, texture1);
         ourShader.setMat4("model", table1_model);
+        ourShader.setMat3("norm_mat", table1_normal);
+        // gold
+        ourShader.setFloat("material.shininess", 128 * .4);
         table.render();
-        glBindTexture(GL_TEXTURE_2D, texture2);
-        ourShader.setMat4("model", cube1_model);
-        cube.render();
-        glBindTexture(GL_TEXTURE_2D, texture3);
-        ourShader.setMat4("model", cube2_model);
-        cube.render();
-        glBindTexture(GL_TEXTURE_2D, texture4);
-        ourShader.setMat4("model", cube3_model);
-        cube.render();
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wireframe
 
         // render to screen
         // --------------------
-        glBindTexture(GL_TEXTURE_2D, renderedTexture);
-        post_shader.use();
-
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, renderedTexture);
+        post_shader.use();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -267,7 +326,7 @@ void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, 
         fov -= spd * 0.5f;
     // reset camera position
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-        view_loc = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+        view_loc = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.2f, -3.0f));
     // reset camera rotation
     if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
         view_dir = glm::mat4(1.0f);
