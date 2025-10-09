@@ -196,7 +196,11 @@ int main(int argc, char *argv[])
         ourShader.setVec3("light.ambient", light_col * 0.6f);
         ourShader.setVec3("light.diffuse", light_col * 0.9f);
         ourShader.setVec3("light.specular", glm::vec3(1.0f));
-        ourShader.setFloat("light.spec_falloff", 1);
+        // for range : decay values ratio, this is a decent site
+        // https://wiki.ogre3d.org/tiki-index.php?page=-Point+Light+Attenuation
+        ourShader.setFloat("light.linear_decay", 0.35f);
+        ourShader.setFloat("light.exp_decay", 0.44f);
+
         ourShader.setMat4("view", view);
         ourShader.setMat4("perspective", perspective); 
         ourShader.setVec3("view_pos", -glm::vec3(view_loc[3]));

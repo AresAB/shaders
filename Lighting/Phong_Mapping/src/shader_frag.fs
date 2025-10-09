@@ -17,7 +17,8 @@ struct Light {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-    float spec_falloff;
+    float linear_decay;
+    float exp_decay;
 };
 
 uniform vec3 view_pos;
@@ -34,14 +35,18 @@ void main()
 
     // light projected from the light source
     vec3 light_dir = light.pos - FragCoord;
-    float light_dist = light.spec_falloff * sqrt(light_dir.x * light_dir.x + light_dir.y * light_dir.y + light_dir.z * light_dir.z);
+    float light_dist = sqrt(light_dir.x * light_dir.x + light_dir.y * light_dir.y + light_dir.z * light_dir.z);
     light_dir = normalize(light_dir);
-    vec3 diffuse = max(dot(Normal, light_dir), 0.0) * diffuse_tex * light.diffuse / light_dist;
+    vec3 diffuse = max(dot(Normal, light_dir), 0.0) * diffuse_tex * light.diffuse;
 
     // reflective lighting from light source
     vec3 view_dir = normalize(view_pos - FragCoord);
     vec3 reflect_dir = reflect(-light_dir, Normal);
     vec3 specular = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess) * specular_tex * light.specular;
 
-    FragColor = ambient + diffuse + specular;
+    // original OpenGL lighting model equation for realistic light falloff
+    // technically the "1" is another constant you can tune, no one does
+    float attenuation = 1 + light.linear_decay * light_dist + light.exp_decay * light_dist * light_dist;
+
+    FragColor = (ambient + diffuse + specular) / attenuation;
 }
