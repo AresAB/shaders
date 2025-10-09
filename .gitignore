@@ -4,3 +4,5 @@ textures/
 **/results/
 photo_roll/
 mixing/
+.gitignore
+templates/scene_phong/
