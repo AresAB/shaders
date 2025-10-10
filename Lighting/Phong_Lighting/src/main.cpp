@@ -155,7 +155,6 @@ int main(int argc, char *argv[])
     cube3_model = glm::scale(cube3_model, glm::vec3(0.4, 0.1, 0.2));
     glm::mat4 cube3_normal = glm::transpose(glm::inverse(glm::mat3(cube3_model)));
 
-    glm::vec3 new_light_pos;
     // render loop
     // --------------------
     while (!glfwWindowShouldClose(window))
