@@ -56,7 +56,7 @@ uint pcgHash(uint seed) {
     seed = seed * 747796405u + 2891336453u;
     uint xor = ((seed >> 18u) ^ seed) >> 27u;
     uint rot = seed >> 22u;
-    return (xorShifted >> rot) | (xor << (32u - rot));
+    return (xor >> rot) | (xor << (32u - rot));
 }
 
 float smoothstep(float x)

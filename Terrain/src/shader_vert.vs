@@ -25,7 +25,7 @@ void main()
     vec2 offset = offsets[gl_InstanceID];
     vec2 pos = (aPos.xy + 1) * .5;
     vec2 offs = (offset + pos) + 200;
-    offs = vec2(201);
+    offs = vec2(202);
     vec2 uv = (offset + pos + 25) * 0.02;
 
     float grad1 = dot(pcgHash(offs), uv);
@@ -55,7 +55,7 @@ uint pcgHash(uint seed) {
     seed = seed * 747796405u + 2891336453u;
     uint xor = ((seed >> 18u) ^ seed) >> 27u;
     uint rot = seed >> 22u;
-    return (xorShifted >> rot) | (xor << (32u - rot));
+    return (xor >> rot) | (xor << (32u - rot));
 }
 
 float smoothstep(float x)
