@@ -35,13 +35,13 @@ void main()
     vec3 specular_tex = texture(material.specular, TexCoord).xyz;
     vec3 light = vec3(0);
     for (int i=0; i < NR_POINT_LIGHTS; i++) {
-        light += calc_point_light(pointlights[i], diffuse_tex, specular_tex);
+        light += calc_point_light(pointlights[i], material.shininess, diffuse_tex, specular_tex);
     }
 
     FragColor = light;
 }
 
-vec3 calc_point_light(PointLight light, vec3 diffuse_tex, vec3 specular_tex)
+vec3 calc_point_light(PointLight light, float shininess, vec3 diffuse_tex, vec3 specular_tex)
 {
     // lighting that is always there
     vec3 ambient = diffuse_tex * light.ambient;
@@ -55,7 +55,7 @@ vec3 calc_point_light(PointLight light, vec3 diffuse_tex, vec3 specular_tex)
     // reflective lighting from light source
     vec3 view_dir = normalize(view_pos - FragCoord);
     vec3 reflect_dir = reflect(-light_dir, Normal);
-    vec3 specular = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess) * specular_tex * light.specular;
+    vec3 specular = pow(max(dot(view_dir, reflect_dir), 0.0), shininess) * specular_tex * light.specular;
 
     // original OpenGL lighting model equation for realistic light falloff
     // technically the "1" is another constant you can tune, no one does
