@@ -48,14 +48,14 @@ void main()
 float fbm (vec2 uv, int depth, vec2 seed) // fractional brownian motion
 {
     mat2 pyth_trip = mat2(.8, .6, -.6, .8);
-    vec2 p = 2 * pyth_trip * uv;
+    vec2 p = 2 * pyth_trip * (uv + seed);
     float scale = .5;
-    float noise = perlin(uv, seed) + perlin(fract(p), seed + floor(p)) * scale;
+    float noise = perlin(uv, seed) + perlin(fract(p), floor(p)) * scale;
     for (int i=2; i < depth; i++)
     {
         scale *= .5;
         p = 2 * pyth_trip * p;
-        noise += perlin(fract(p), seed + floor(p)) * scale;
+        noise += perlin(fract(p), floor(p)) * scale;
     }
     return noise;
 }
