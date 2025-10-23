@@ -5,7 +5,7 @@ layout(location = 0) out vec3 FragColor;
 in vec2 TexCoord;
 in vec3 FragCoord;
 in vec3 Normal;
-flat in int Instance;
+in float Height;
 
 struct Material {
     float shininess;
@@ -31,37 +31,9 @@ vec2 pcgHash(vec2 p);
 
 void main()
 {
-    //FragColor = calcDirLight(material, light);
-    vec2 offs = offsets[Instance] + 200;
-    offs = vec2(201, 201);
-    vec2 coord = (offsets[Instance] + TexCoord + 25) / 50;
-
-    float grad1 = dot(pcgHash(offs), coord);
-    float grad2 = dot(pcgHash(offs + vec2(1, 0)), vec2(coord.x - 1, coord.y));
-    float grad3 = dot(pcgHash(offs + vec2(0, 1)), vec2(coord.x, coord.y - 1));
-    float grad4 = dot(pcgHash(offs + 1), coord.xy - 1);
-
-    float bilinear = mix(mix(grad1, grad2, smoothstep(coord.x)), mix(grad3, grad4, smoothstep(coord.x)), smoothstep(coord.y));
-
-    FragColor = vec3(bilinear);
-}
-
-vec2 pcgHash(vec2 p)
-{
-    uint x = pcgHash(uint(p.x) + pcgHash(uint(p.y)));
-    return vec2(x, pcgHash(x)) / float(0xFFFFFFFFu) * 2 - 1;
-}
-
-uint pcgHash(uint seed) {
-    seed = seed * 747796405u + 2891336453u;
-    uint xor = ((seed >> 18u) ^ seed) >> 27u;
-    uint rot = seed >> 22u;
-    return (xor >> rot) | (xor << (32u - rot));
-}
-
-float smoothstep(float x)
-{
-    return x * x * x * (x * (x * 6 - 15) + 10);
+    float height = floor(Height * 50) / 50;
+    height = Height;
+    FragColor = height + vec3(0.7, 0.4, 0.2);
 }
 
 vec3 calcDirLight(Material mat, DirLight light)

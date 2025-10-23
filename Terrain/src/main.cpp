@@ -112,21 +112,16 @@ int main(int argc, char *argv[])
 
     // uniforms
     glm::vec3 light_col = glm::vec3(1);
+    int size_length = 200;
     
-    // obsidian (http://devernay.free.fr/cours/opengl/materials.html)
-    ourShader.setFloat("material.shininess", 128);
+    ourShader.setFloat("material.shininess", 128); // obsidian (http://devernay.free.fr/cours/opengl/materials.html)
     ourShader.setVec3("light.dir", glm::vec3(0, -0.5, 0.866));
     ourShader.setVec3("light.ambient", light_col * 0.1f);
     ourShader.setVec3("light.diffuse", light_col * 0.6f);
     ourShader.setVec3("light.specular", glm::vec3(1.0f));
 
-    for(int i = -25; i < 25; i++)
-    {
-        for(int j = -25; j < 25; j++)
-        {
-            ourShader.setVec2("offsets[" + std::to_string((i + 25) * 50 + j + 25) + "]", glm::vec2(j, i));
-        }
-    } 
+    ourShader.setInt("lattices", 4);
+    ourShader.setInt("size_len", size_length);
 
     // rendering matricies setup
     // --------------------
@@ -134,7 +129,7 @@ int main(int argc, char *argv[])
     // create fov for perspective matrix calculation
     float perspective_fov = 0.785f; // modify for different zoom levels
     float near = 0.1f; // near plane z
-    float far = 100.f; // far plane z
+    float far = 250.f; // far plane z
     glm::mat4 perspective = makePerspectiveMatrix(perspective_fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 
     // seperate view matrix components to allow for camera movement and rotation
@@ -142,7 +137,8 @@ int main(int argc, char *argv[])
     glm::mat4 view_loc = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.2f, -3.0f));
     glm::mat4 view = view_dir * view_loc;
 
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1,-1,-50.9));
+    glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(.5, 1., .5));
+    model = glm::translate(model, glm::vec3(1,-1,-50.9));
     model = glm::rotate(model, -3.14f/2, glm::vec3(1, 0, 0));
     glm::mat3 model_normal = glm::transpose(glm::inverse(glm::mat3(model)));
     ourShader.setMat4("model", model);
@@ -178,7 +174,7 @@ int main(int argc, char *argv[])
 
         glActiveTexture(GL_TEXTURE0);
 
-        quad.render_instanced(2500);
+        quad.render_instanced(size_length * size_length);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // disable wireframe
 
@@ -235,7 +231,7 @@ unsigned int loadTexture(std::string filename, GLenum image_type) {
 
 void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov, float& near, float& far)
 {
-    float spd = 0.0005f;
+    float spd = 0.001f;
 
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
