@@ -10,7 +10,7 @@
 #include <memory>
 #include <iostream>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+//void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void saveScreenshotToFile(std::string filename, GLFWwindow *window, int renderedTexture, int scr_width, int scr_height);
 
@@ -18,14 +18,16 @@ int main(int argc, char *argv[])
 {
     const unsigned int SCR_WIDTH = atoi(argv[1]);
     const unsigned int SCR_HEIGHT = atoi(argv[2]);
-    const char *SCR_SHOT_PATH = argv[4];
-    const char *TEXTURE1_PATH = argv[5];
+    const unsigned int SCR_SHOT_WIDTH = atoi(argv[3]);
+    const unsigned int SCR_SHOT_HEIGHT = atoi(argv[4]);
+    const char *SCR_SHOT_PATH = argv[6];
+    const char *TEXTURE1_PATH = argv[7];
     unsigned int image_color_type;
 
-    std::string arg3(argv[3]);
+    std::string arg5(argv[5]);
     std::string rgba = "RGBA";
 
-    if (arg3 == rgba)
+    if (arg5 == rgba)
     {
         image_color_type = GL_RGBA;
         std::cout << "a" << std::endl;
@@ -57,7 +59,7 @@ int main(int argc, char *argv[])
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -69,7 +71,7 @@ int main(int argc, char *argv[])
 
     // build and compile our shader program
     // ------------------------------------
-    Shader ourShader("src/3.3.shader.vs", "src/3.3.shader.fs"); // you can name your shader files however you like
+    Shader ourShader("src/shader_vert.vs", "src/shader_frag.fs"); // you can name your shader files however you like
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -161,7 +163,7 @@ int main(int argc, char *argv[])
     glBindTexture(GL_TEXTURE_2D, renderedTexture);
 
     // Give an empty image to OpenGL ( the last "0" )
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
     // Set "renderedTexture" as our colour attachement #0
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
@@ -175,9 +177,6 @@ int main(int argc, char *argv[])
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     return false;
 
-    // Render to our framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -185,7 +184,7 @@ int main(int argc, char *argv[])
         // input
         // -----
         processInput(window);
-        saveScreenshotToFile(SCR_SHOT_PATH, window, renderedTexture, SCR_WIDTH, SCR_HEIGHT);
+        saveScreenshotToFile(SCR_SHOT_PATH, window, renderedTexture, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT);
 
         // render
         // ------
@@ -199,7 +198,8 @@ int main(int argc, char *argv[])
         // call shaders
         ourShader.use();
 
-        // Render to renderedTexture
+        glViewport(0, 0, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT);
+        // Rendering will now be done to renderedTexture
         glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
         // render the triangle
@@ -208,7 +208,8 @@ int main(int argc, char *argv[])
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        // Render to screen
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        // Rendering will now be done to screen
         // the "0" is the screen, and IS NOT renderTexture
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -243,30 +244,32 @@ void processInput(GLFWwindow *window)
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
+// commented out because it might mess with screensaver logic and I generally want textures to keep their original resolution ratios
 // ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+/*void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
-}
+}*/
 
 void saveScreenshotToFile(std::string filename, GLFWwindow *window, int renderedTexture, int scr_width, int scr_height) {    
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
         std::cout << "argsataerra" << std::endl;
-        std::unique_ptr<unsigned char[]> data = std::make_unique<unsigned char[]>(scr_width * scr_height * 3 * sizeof(unsigned int));
+        std::unique_ptr<unsigned char[]> data = std::make_unique<unsigned char[]>(scr_width * scr_height * 4 * sizeof(unsigned int));
         // Or you can just:
         //unsigned char *data = new unsigned char[scr_width * scr_height * 3];
         glBindTexture(GL_TEXTURE_2D, renderedTexture);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, data.get());
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
 
         //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, scr_width, scr_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.get());
 
         stbi_flip_vertically_on_write(true);
-        int ret = stbi_write_jpg(filename.c_str(), scr_width, scr_height, 3, data.get(), 100);
+        //int ret = stbi_write_jpg(filename.c_str(), scr_width, scr_height, 3, data.get(), 100);
+        int ret = stbi_write_png(filename.c_str(), scr_width, scr_height, 4, data.get(), scr_width * 4);
         if (ret == 0)
         {
             std::cout << "Failed to capture screenshot" << std::endl;

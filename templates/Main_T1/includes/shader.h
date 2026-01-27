@@ -34,7 +34,7 @@ unsigned int create_shader(const char* vertex_path, const char* fragment_path) {
     }
     fseek(vert_file, 0L, SEEK_END);
     long len = ftell(vert_file) + 1;
-    char *vert_code = memset(malloc(len), '\0', len);
+    char *vert_code = (char *)memset(malloc(len), '\0', len);
     rewind(vert_file);
     fread(vert_code, 1, len-1, vert_file);
     fclose(vert_file);
@@ -46,7 +46,7 @@ unsigned int create_shader(const char* vertex_path, const char* fragment_path) {
     }
     fseek(frag_file, 0L, SEEK_END);
     len = ftell(frag_file) + 1;
-    char *frag_code = memset(malloc(len), '\0', len);
+    char *frag_code = (char *)memset(malloc(len), '\0', len);
     rewind(frag_file);
     fread(frag_code, 1, len-1, frag_file);
     fclose(frag_file);
@@ -95,10 +95,10 @@ unsigned int create_shader(const char* vertex_path, const char* fragment_path) {
     return id;
 }
 
-void shader_set_int(unsigned int id, char *name, int val) {
+void shader_set_int(unsigned int id, const char *name, int val) {
     glUniform1i(glGetUniformLocation(id, name), val); 
 }
 
-void shader_set_float(unsigned int id, char *name, float val) {
+void shader_set_float(unsigned int id, const char *name, float val) {
     glUniform1f(glGetUniformLocation(id, name), val); 
 }

@@ -14,7 +14,7 @@
 void process_input(GLFWwindow *window);
 void save_screenshot_to_file(const char *filename, GLFWwindow *window, int rendered_texture, int scr_width, int scr_height);
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     if(argc < 8) {
         printf("|%s|\n(%d) ERROR: Not enough arguments; %i/7", __FILE__, __LINE__, argc-1);
         exit(1);

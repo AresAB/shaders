@@ -18,6 +18,7 @@ uniform int lattices;
 uniform int size_len;
 
 float smoothstep(float x);
+float smoothstep(float x, float y, float a);
 uint pcgHash(uint seed);
 vec2 pcgHash(vec2 p);
 float perlin(vec2 uv, vec2 seed);
@@ -35,7 +36,10 @@ void main()
 
     float noise = fbm(uv, 10, seed); // min of depth 2, use perlin() for depth 1
     //float noise = perlin(uv, seed);
-    vec4 m_pos = model * vec4(aPos.xy + 2 * (offset - size_len * .5), aPos.z + 20 * noise, 1.0);
+
+    // the smoothstep just lifts up any terrain above .2
+    float final = 20 * (noise + 1 * smoothstep(.2, 1, noise));
+    vec4 m_pos = model * vec4(aPos.xy + 2 * (offset - size_len * .5), aPos.z + final, 1.0);
 
     FragCoord = vec3(m_pos);
     TexCoord = aTexCoord;
@@ -60,24 +64,6 @@ float fbm (vec2 uv, int depth, vec2 seed) // fractional brownian motion
     return noise;
 }
 
-/*float fbm (vec2 uv, int depth, vec2 seed)
-{
-    mat2 pyth_trip = mat2(4./5, 3./5, -3./5, 4./5);
-    mat2 rot;
-    float noise = perlin(uv, seed);
-    for (int i=1; i < depth; i++)
-    {
-        rot = pyth_trip;
-        for (int j=1; j < i; j++)
-        {
-            rot *= pyth_trip;
-        }
-        vec2 p = pow(2, i) * (rot * uv);
-        noise += perlin(fract(p), seed + floor(p)) / pow(2, i);
-    }
-    return noise;
-}*/
-
 float perlin(vec2 uv, vec2 seed) 
 {
     float grad1 = dot(pcgHash(seed), uv);
@@ -94,11 +80,17 @@ vec2 pcgHash(vec2 p)
     return vec2(cos(x), sin(x));
 }
 
-uint pcgHash(uint seed) {
+uint pcgHash(uint seed) 
+{
     seed = seed * 747796405u + 2891336453u;
     uint xor = ((seed >> 18u) ^ seed) >> 27u;
     uint rot = seed >> 22u;
     return (xor >> rot) | (xor << (32u - rot));
+}
+
+float smoothstep(float x, float y, float a)
+{
+    return smoothstep(clamp((a - x) / (y - x), 0.0, 1.0));
 }
 
 float smoothstep(float x)

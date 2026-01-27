@@ -33,6 +33,8 @@ void main()
 {
     float height = floor(Height * 50) / 50;
     height = Height;
+    //FragColor = height + vec3(0.7, 0.4, 0.2);
+
     FragColor = height + vec3(0.7, 0.4, 0.2);
 }
 
