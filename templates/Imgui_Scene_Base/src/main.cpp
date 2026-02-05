@@ -176,6 +176,7 @@ int main(int argc, char *argv[])
 	ImGui::Begin("Debug Menu");
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui::Text("%f FPS Average", io.Framerate);
+	ImGui::Text("Position: %f, %f, %f", -view_loc[3][0], -view_loc[3][1], -view_loc[3][2]);
     	//float lerp;
 	//ImGui::SliderFloat("float", &lerp, 0.0f, 1.0f);
     	//ImVec4 color;
