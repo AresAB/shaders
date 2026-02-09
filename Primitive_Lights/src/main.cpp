@@ -141,6 +141,7 @@ int main(int argc, char *argv[])
 
     glm::vec3 light3_pos = glm::vec3(1.5f, 0.5f, 0.5f);
     ourShader.setVec3("spotlights[0].pos", light3_pos);
+    ourShader.setVec3("spotlights[0].dir", glm::normalize(light3_pos));
     glm::vec3 light3_col = glm::vec3(0.f, 1.0f, 0.f);
     ourShader.setFloat("spotlights[0].umbra", cos(50.f * 3.14f / 180.f));
     ourShader.setFloat("spotlights[0].penumbra", cos(40.f * 3.14f / 180.f));
