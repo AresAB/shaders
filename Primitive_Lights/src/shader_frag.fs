@@ -88,11 +88,11 @@ vec3 calc_spotlight(Spotlight light, float shininess, vec3 diffuse_tex, vec3 spe
     vec3 ambient = diffuse_tex * light.ambient;
 
     // light projected from the light source
-    vec3 diffuse = max(dot(Normal, light.dir), 0.0) * diffuse_tex * light.diffuse;
+    vec3 diffuse = max(dot(Normal, -light.dir), 0.0) * diffuse_tex * light.diffuse;
 
     // reflective lighting from light source
     vec3 view_dir = normalize(view_pos - FragCoord);
-    vec3 reflect_dir = reflect(-light.dir, Normal);
+    vec3 reflect_dir = reflect(light.dir, Normal);
     vec3 specular = pow(max(dot(view_dir, reflect_dir), 0.0), shininess) * specular_tex * light.specular;
 
 
@@ -103,7 +103,7 @@ vec3 calc_spotlight(Spotlight light, float shininess, vec3 diffuse_tex, vec3 spe
     float attenuation = 1 + light.linear_decay * light_dist + light.exp_decay * light_dist * light_dist;
 
     vec3 col = (ambient + diffuse + specular) / attenuation;
-    float dir = clamp((dot(normalize(light_dist_vec), -light.dir) - light.umbra)/(light.penumbra - light.umbra), 0.f, 1.f);
+    float dir = clamp((dot(normalize(light_dist_vec), light.dir) - light.umbra)/(light.penumbra - light.umbra), 0.f, 1.f);
     dir = dir * dir * (3 - 2 * dir); // smoothstep
     return col * dir;
 }

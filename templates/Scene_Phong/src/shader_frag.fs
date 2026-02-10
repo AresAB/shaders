@@ -27,7 +27,7 @@ uniform vec3 view_pos;
 uniform Material material;
 uniform PointLight pointlights[NR_POINT_LIGHTS];
 
-vec3 calc_point_light(PointLight light, vec3 diffuse_tex, vec3 specular_tex);
+vec3 calc_point_light(PointLight light, float shininess, vec3 diffuse_tex, vec3 specular_tex);
 
 void main()
 {
