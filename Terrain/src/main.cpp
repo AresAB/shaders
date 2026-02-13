@@ -1,9 +1,11 @@
 #include <glad/glad.h>
+#include <glad/glad.c>
 #include <GLFW/glfw3.h>
-#include <stb_image.h>
 
+#include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+#include <stb_image.cpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -16,8 +18,9 @@
 #include <memory>
 #include <iostream>
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 unsigned int loadTexture(std::string filename, GLenum image_type);
-void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov, float& near, float& far);
+void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov, float& z_near, float& z_far);
 glm::mat4 makePerspectiveMatrix(float fov, float aspect_ratio, float n, float f);
 void saveScreenshotToFile(std::string filename, GLFWwindow *window, int renderedTexture, int scr_width, int scr_height);
 
@@ -50,6 +53,7 @@ int main(int argc, char *argv[])
         return -1;
     }
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -128,9 +132,9 @@ int main(int argc, char *argv[])
     ourShader.use();
     // create fov for perspective matrix calculation
     float perspective_fov = 0.785f; // modify for different zoom levels
-    float near = 0.1f; // near plane z
-    float far = 250.f; // far plane z
-    glm::mat4 perspective = makePerspectiveMatrix(perspective_fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+    float z_near = 0.1f; // near plane z
+    float z_far = 250.f; // far plane z
+    glm::mat4 perspective = makePerspectiveMatrix(perspective_fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, z_near, z_far);
 
     // seperate view matrix components to allow for camera movement and rotation
     glm::mat4 view_dir = glm::mat4(1.0f);
@@ -144,13 +148,16 @@ int main(int argc, char *argv[])
     ourShader.setMat4("model", model);
     ourShader.setMat3("norm_mat", model_normal);
 
+    int scr_width;
+    int scr_height;
     // render loop
     // --------------------
     while (!glfwWindowShouldClose(window))
     {
+	glfwGetWindowSize(window, &scr_width, &scr_height);
         // input processing
         // --------------------
-        processInput(window, view_dir, view_loc, perspective_fov, near, far);
+        processInput(window, view_dir, view_loc, perspective_fov, z_near, z_far);
         saveScreenshotToFile(SCR_SHOT_PATH, window, renderedTexture, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT);
         if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // toggle wireframe
@@ -164,7 +171,7 @@ int main(int argc, char *argv[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         view = view_dir * view_loc;
-        perspective = makePerspectiveMatrix(perspective_fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+        perspective = makePerspectiveMatrix(perspective_fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, z_near, z_far);
 
         ourShader.use();
 
@@ -180,7 +187,7 @@ int main(int argc, char *argv[])
 
         // render to screen
         // --------------------
-        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        glViewport(0, 0, scr_width, scr_height);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glActiveTexture(GL_TEXTURE0);
@@ -229,7 +236,7 @@ unsigned int loadTexture(std::string filename, GLenum image_type) {
     return tex_id;
 }
 
-void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov, float& near, float& far)
+void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov, float& z_near, float& z_far)
 {
     float spd = 0.001f;
 
@@ -279,13 +286,13 @@ void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, 
         fov = 0.785f;
     // near and far plane distances
     if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
-        near -= spd;
+        z_near -= spd;
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
-        near += spd;
+        z_near += spd;
     if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
-        far -= 10 * spd;
+        z_far -= 10 * spd;
     if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
-        far += 10 * spd;
+        z_far += 10 * spd;
 }
 
 // recreation of glm's perspective matrix with (l, r, b, t) inputs
@@ -323,4 +330,9 @@ void saveScreenshotToFile(std::string filename, GLFWwindow *window, int rendered
             std::cout << "Failed to capture screenshot" << std::endl;
         }
     }
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
 }
