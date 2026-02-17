@@ -238,7 +238,7 @@ unsigned int loadTexture(std::string filename, GLenum image_type) {
 
 void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, float& fov, float& z_near, float& z_far)
 {
-    float spd = 0.001f;
+    float spd = 0.01f;
 
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -259,17 +259,17 @@ void processInput(GLFWwindow *window, glm::mat4& view_dir, glm::mat4& view_loc, 
         view_loc = glm::translate(view_loc, -spd * glm::vec3(view_dir[0][1], view_dir[1][1], view_dir[2][1]));
     // camera rotation
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        view_dir = glm::rotate(view_dir, spd, -glm::vec3(view_dir[0][1], view_dir[1][1], view_dir[2][1]));
+        view_dir = glm::rotate(view_dir, spd * 0.1f, -glm::vec3(view_dir[0][1], view_dir[1][1], view_dir[2][1]));
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        view_dir = glm::rotate(view_dir, spd, glm::vec3(view_dir[0][1], view_dir[1][1], view_dir[2][1]));
+        view_dir = glm::rotate(view_dir, spd * 0.1f, glm::vec3(view_dir[0][1], view_dir[1][1], view_dir[2][1]));
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        view_dir = glm::rotate(view_dir, spd, -glm::vec3(view_dir[0][0], view_dir[1][0], view_dir[2][0]));
+        view_dir = glm::rotate(view_dir, spd * 0.1f, -glm::vec3(view_dir[0][0], view_dir[1][0], view_dir[2][0]));
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        view_dir = glm::rotate(view_dir, spd, glm::vec3(view_dir[0][0], view_dir[1][0], view_dir[2][0]));
+        view_dir = glm::rotate(view_dir, spd * 0.1f, glm::vec3(view_dir[0][0], view_dir[1][0], view_dir[2][0]));
     if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
-        view_dir = glm::rotate(view_dir, spd, glm::vec3(view_dir[0][2], view_dir[1][2], view_dir[2][2]));
+        view_dir = glm::rotate(view_dir, spd * 0.1f, glm::vec3(view_dir[0][2], view_dir[1][2], view_dir[2][2]));
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
-        view_dir = glm::rotate(view_dir, spd, -glm::vec3(view_dir[0][2], view_dir[1][2], view_dir[2][2]));
+        view_dir = glm::rotate(view_dir, spd * 0.1f, -glm::vec3(view_dir[0][2], view_dir[1][2], view_dir[2][2]));
     // camera zoom
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         fov += spd * 0.5f;

@@ -23,6 +23,7 @@ uint pcgHash(uint seed);
 vec2 pcgHash(vec2 p);
 float perlin(vec2 uv, vec2 seed);
 float fbm (vec2 uv, int depth, vec2 seed);
+vec3 fbm_normal (vec2 uv, int depth, vec2 seed);
 
 void main()
 {
@@ -43,10 +44,11 @@ void main()
 
     FragCoord = vec3(m_pos);
     TexCoord = aTexCoord;
-    Normal = normalize(norm_mat * aNormal);
+    //Normal = normalize(norm_mat * aNormal);
+    Normal = fbm_normal(uv, 10, seed);
     Height = noise;
 
-	gl_Position = perspective * view * m_pos;
+    gl_Position = perspective * view * m_pos;
 }
 
 float fbm (vec2 uv, int depth, vec2 seed) // fractional brownian motion
@@ -62,6 +64,14 @@ float fbm (vec2 uv, int depth, vec2 seed) // fractional brownian motion
         noise += perlin(fract(p), floor(p)) * scale;
     }
     return noise;
+}
+
+vec3 fbm_normal (vec2 uv, int depth, vec2 seed) // calculate normal through cross product-ing the gradient (partial x crossed with partial y)
+{
+    // I'm not sure how to get the partial derivative of perlin or fbm noise, so I just estimate the slope
+    float x_partial = (fbm(uv, depth, seed + vec2(1, 0)) - fbm(uv, depth, seed - vec2(1, 0))) * 0.5;
+    float z_partial = (fbm(uv, depth, seed + vec2(0, 1)) - fbm(uv, depth, seed - vec2(0, 1))) * 0.5;
+    return cross(normalize(vec3(0, z_partial, 1)), normalize(vec3(1, x_partial, 0)));
 }
 
 float perlin(vec2 uv, vec2 seed) 
