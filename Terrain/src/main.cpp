@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     glm::vec3 light_col = glm::vec3(1);
     int size_length = 200;
     
-    ourShader.setFloat("material.shininess", 128); // obsidian (http://devernay.free.fr/cours/opengl/materials.html)
+    ourShader.setFloat("material.shininess", 128 * 0.078); // obsidian (http://devernay.free.fr/cours/opengl/materials.html)
     ourShader.setVec3("light.dir", glm::vec3(0, -0.5, 0.866));
     ourShader.setVec3("light.ambient", light_col * 0.1f);
     ourShader.setVec3("light.diffuse", light_col * 0.6f);

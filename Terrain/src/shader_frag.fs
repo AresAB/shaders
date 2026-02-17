@@ -33,23 +33,28 @@ void main()
 {
     float height = floor(Height * 50) / 50;
     height = Height;
+    vec3 normal = normalize(Normal);
     //FragColor = height + vec3(0.7, 0.4, 0.2);
     //FragColor = height + vec3(0.7, 0.4, 0.2);
-    FragColor = mix(vec3(0.8, 0.1, 0.1), vec3(0.1, 0.1, 0.1), height * 2) * calcDirLight(material, light);
+    //vec3 color = vec3(0.7, 0.4, 0.2);
+    vec3 color = mix(vec3(0., 0.5, 0.), vec3(0.7, 0.4, 0.2), vec3(smoothstep(0.6, 0.7, normal.y)));
+    //color += height * vec3(0., 0., 0.5);
+    color *= calcDirLight(material, light);
+    FragColor = color;
 }
 
 vec3 calcDirLight(Material mat, DirLight light)
 {
     // lighting that is always there
     vec3 ambient = light.ambient;
-
+    vec3 normal = normalize(Normal);
     // light projected from the light source
     vec3 light_dir = normalize(-light.dir);
-    vec3 diffuse = max(dot(Normal, light_dir), 0.0) * light.diffuse;
+    vec3 diffuse = max(dot(normal, light_dir), 0.0) * light.diffuse;
 
     // reflective lighting from light source
     vec3 view_dir = normalize(view_pos - FragCoord);
-    vec3 reflect_dir = reflect(-light_dir, Normal);
+    vec3 reflect_dir = reflect(-light_dir, normal);
     vec3 specular = pow(max(dot(view_dir, reflect_dir), 0.0), mat.shininess) * light.specular;
 
     return ambient + diffuse + specular;
