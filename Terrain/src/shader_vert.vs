@@ -25,11 +25,10 @@ float perlin(vec2 uv, vec2 seed);
 vec3 perlin_gradient(vec2 uv, vec2 seed);
 float fbm (vec2 uv, int depth, vec2 seed);
 vec3 fbm_normal (vec2 uv, int depth, vec2 seed);
-float fbm_sculpted (vec2 uv, vec2 seed);
-vec3 fbm_sculpted_normal (vec2 uv, vec2 seed);
+vec4 fbm_struct (vec2 uv, int depth, vec2 seed);
+vec4 fbm_sculpted (vec2 uv, vec2 seed);
 float quint_smoothstep_deriv(float x, float y, float a);
 float quint_smoothstep_deriv(float x);
-vec4 fbm_struct (vec2 uv, int depth, vec2 seed);
 
 void main()
 {
@@ -42,8 +41,8 @@ void main()
     uv = vec2(float(int(uv.x) % lat_size) / lat_size, float(int(uv.y) % lat_size) / lat_size);
 
     //float noise = fbm(uv, 10, seed); // min of depth 2, use perlin() for depth 1
-    //float noise = fbm_sculpted(uv, seed);
     vec4 noise_struct = fbm_struct(uv, 10, seed);
+    //vec4 noise_struct = fbm_sculpted(uv, seed);
     float noise = noise_struct.x;
     //float noise = perlin(uv, seed);
 
@@ -55,7 +54,6 @@ void main()
     TexCoord = aTexCoord;
     //Normal = normalize(norm_mat * aNormal);
     //Normal = fbm_normal(uv, 10, seed);
-    //Normal = fbm_sculpted_normal(uv, seed);
     Normal = noise_struct.yzw;
     Height = noise;
 
@@ -102,37 +100,32 @@ vec4 fbm_struct (vec2 uv, int depth, vec2 seed)
     return vec4(result, noise.x, noise.y, noise.z);
 }
 
-float fbm_sculpted (vec2 uv, vec2 seed) // fractional brownian motion
+vec4 fbm_sculpted (vec2 uv, vec2 seed)
 {
     mat2 pyth_trip = mat2(.8, .6, -.6, .8);
     vec2 p = 2 * pyth_trip * (uv + seed);
     float scale = .5;
-    float noise = perlin(uv, seed) + perlin(fract(p), floor(p)) * scale;
-    for (int i=2; i < 4; i++)
+    vec3 noise = perlin_gradient(uv, seed) + perlin_gradient(fract(p), floor(p)) * scale;
+    for (int i=2; i < 7; i++)
     {
         scale *= .5;
         p = 2 * pyth_trip * p;
-        noise += perlin(fract(p), floor(p)) * scale;
+        noise += perlin_gradient(fract(p), floor(p)) * scale;
     }
-    for (int i=4; i < 7; i++)
+    for (int i=7; i < 14; i++)
     {
         scale *= .5;
         p = 2 * pyth_trip * p;
     }
-    for (int i=7; i < 10; i++)
+    for (int i=14; i < 20; i++)
     {
         scale *= .5;
         p = 2 * pyth_trip * p;
-        noise += perlin(fract(p), floor(p)) * scale;
+        noise += perlin_gradient(fract(p), floor(p)) * scale;
     }
-    return noise;
-}
-
-vec3 fbm_sculpted_normal (vec2 uv, vec2 seed)
-{
-    float x_partial = (fbm_sculpted(uv, seed + vec2(1, 0)) - fbm_sculpted(uv, seed - vec2(1, 0))) * 0.5;
-    float z_partial = (fbm_sculpted(uv, seed + vec2(0, 1)) - fbm_sculpted(uv, seed - vec2(0, 1))) * 0.5;
-    return normalize(cross(normalize(vec3(0, z_partial, 1)), normalize(vec3(1, x_partial, 0))));
+    float result = noise.x;
+    noise = normalize(cross(vec3(0., noise.z, 1.), vec3(1., noise.y, 0.)));
+    return vec4(result, noise.x, noise.y, noise.z);
 }
 
 float perlin(vec2 uv, vec2 seed) 
