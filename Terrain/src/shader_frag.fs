@@ -7,6 +7,9 @@ in vec3 FragCoord;
 in vec3 Normal;
 in float Height;
 
+uniform vec3 primary;
+uniform vec3 secondary;
+
 struct Material {
     float shininess;
 };
@@ -37,7 +40,7 @@ void main()
     //FragColor = height + vec3(0.7, 0.4, 0.2);
     //FragColor = height + vec3(0.7, 0.4, 0.2);
     //vec3 color = vec3(0.7, 0.4, 0.2);
-    vec3 color = mix(vec3(0., 0.5, 0.), vec3(0.7, 0.4, 0.2), vec3(smoothstep(0.6, 0.7, normal.y)));
+    vec3 color = mix(primary, secondary, vec3(smoothstep(0.6, 0.7, normal.y)));
     //color += height * vec3(0., 0., 0.5);
     color *= calcDirLight(material, light);
     FragColor = color;

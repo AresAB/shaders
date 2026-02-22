@@ -2,6 +2,21 @@
 #include <glad/glad.c>
 #include <GLFW/glfw3.h>
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
+#include <imgui/imconfig.h>
+#include <imgui/imgui_internal.h>
+#include <imgui/imgui.cpp>
+#include <imgui/imgui_impl_glfw.cpp>
+#include <imgui/imgui_impl_opengl3.cpp>
+#include <imgui/imgui_draw.cpp>
+#include <imgui/imgui_tables.cpp>
+#include <imgui/imgui_widgets.cpp>
+#include <imgui/imgui_demo.cpp>
+
 #include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -60,6 +75,16 @@ int main(int argc, char *argv[])
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330 core");
 
     glEnable(GL_DEPTH_TEST);
 
@@ -124,7 +149,6 @@ int main(int argc, char *argv[])
     ourShader.setVec3("light.diffuse", light_col * 0.6f);
     ourShader.setVec3("light.specular", glm::vec3(1.0f));
 
-    ourShader.setInt("lattices", 4);
     ourShader.setInt("size_len", size_length);
 
     // rendering matricies setup
@@ -144,20 +168,36 @@ int main(int argc, char *argv[])
     glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(.5, 1., .5));
     model = glm::translate(model, glm::vec3(1,-1,-50.9));
     model = glm::rotate(model, -3.14f/2, glm::vec3(1, 0, 0));
-    glm::mat3 model_normal = glm::transpose(glm::inverse(glm::mat3(model)));
     ourShader.setMat4("model", model);
-    ourShader.setMat3("norm_mat", model_normal);
 
     int scr_width;
     int scr_height;
     // render loop
     // --------------------
+    ImVec2 seed_vec = ImVec2(230.f, 230.f);
+    ImVec4 primary_color = ImVec4(0.0f, 0.5f, 0.f, 1.f);
+    ImVec4 secondary_color = ImVec4(0.7f, 0.4f, 0.2f, 1.f);
+    int lattice_num = 4;
     while (!glfwWindowShouldClose(window))
     {
 	glfwGetWindowSize(window, &scr_width, &scr_height);
         // input processing
         // --------------------
         processInput(window, view_dir, view_loc, perspective_fov, z_near, z_far);
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+	ImGui::Begin("Debug Menu");
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::Text("%f FPS Average", io.Framerate);
+	ImGui::Text("Position: %f, %f, %f", -view_loc[3][0], -view_loc[3][1], -view_loc[3][2]);
+	ImGui::SliderInt("Number of Lattices", &lattice_num, 2, 10);
+	ImGui::SliderFloat2("Terrain Seed", (float*)&seed_vec, 220.0f, 240.f, "%.1f");
+	ImGui::ColorEdit4("Primary Color", (float*)&primary_color);
+	ImGui::ColorEdit4("Secondary Color", (float*)&secondary_color);
+	ImGui::End();
+
         saveScreenshotToFile(SCR_SHOT_PATH, window, renderedTexture, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT);
         if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // toggle wireframe
@@ -179,6 +219,11 @@ int main(int argc, char *argv[])
         ourShader.setMat4("perspective", perspective); 
         ourShader.setVec3("view_pos", -glm::vec3(view_loc[3]));
 
+	ourShader.setVec2("base_seed", seed_vec.x, seed_vec.y);
+	ourShader.setVec3("primary", primary_color.x, primary_color.y, primary_color.z);
+	ourShader.setVec3("secondary", secondary_color.x, secondary_color.y, secondary_color.z);
+    	ourShader.setInt("lattices", lattice_num);
+
         glActiveTexture(GL_TEXTURE0);
 
         quad.render_instanced(size_length * size_length);
@@ -199,11 +244,18 @@ int main(int argc, char *argv[])
 
         screen_quad.render();
 
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         // poll for inputs and display screen buffer
         // --------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     screen_quad.deallocate();
     quad.deallocate();

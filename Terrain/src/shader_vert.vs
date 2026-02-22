@@ -12,10 +12,10 @@ out float Height;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 perspective;
-uniform mat3 norm_mat;
 
 uniform int lattices;
 uniform int size_len;
+uniform vec2 base_seed;
 
 float quint_smoothstep(float x);
 float quint_smoothstep(float x, float y, float a);
@@ -33,12 +33,13 @@ float quint_smoothstep_deriv(float x);
 void main()
 {
     vec2 offset = vec2(gl_InstanceID % size_len, gl_InstanceID / size_len);
-    vec2 seed = vec2(230);
-    vec2 uv = offset + (aPos.xy + 1) * .5;
+    vec2 seed = floor(base_seed);
+    vec2 uv = offset + (aPos.xy + 1) * .5; // uv coords of entire mesh
 
     int lat_size = size_len / lattices;
-    seed += floor(uv / lat_size);
-    uv = vec2(float(int(uv.x) % lat_size) / lat_size, float(int(uv.y) % lat_size) / lat_size);
+    seed += floor(uv / lat_size); // corner of each lattice
+    uv = vec2(float(int(uv.x) % lat_size) / lat_size, float(int(uv.y) % lat_size) / lat_size); // uv coords of each lattice
+    // we split uv into uv and seed purely for the pcghash calculations
 
     //float noise = fbm(uv, 10, seed); // min of depth 2, use perlin() for depth 1
     vec4 noise_struct = fbm_struct(uv, 10, seed);
@@ -52,7 +53,6 @@ void main()
 
     FragCoord = vec3(m_pos);
     TexCoord = aTexCoord;
-    //Normal = normalize(norm_mat * aNormal);
     //Normal = fbm_normal(uv, 10, seed);
     Normal = noise_struct.yzw;
     Height = noise;
