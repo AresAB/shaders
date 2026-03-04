@@ -5,6 +5,18 @@ layout(location = 0) out vec3 FragColor;
 in vec2 TexCoord;
 
 uniform sampler2D texture1;
+uniform float num_colors;
+uniform float luminance;
+uniform float chroma;
+uniform float hue; // 0 - 100
+
+// remember to keep one of these spreads constant for the sake of color harmony
+uniform float l_spread;
+uniform float c_spread;
+uniform float h_spread; // 0 - 100
+
+uniform float dither_spread;
+
 
 vec3 oklch_to_RGB(vec3 LCH)
 {
@@ -54,17 +66,6 @@ vec3 oklch_to_RGB(vec3 LCH)
 
 void main()
 {
-    float num_colors = 8;
-    float luminance = 0.4;
-    float chroma = 0.3;
-    float hue = 15; // 0 - 100
-    // remember to keep one of these spreads constant for the sake of color harmony
-    float l_spread = 0.07;
-    float c_spread = 0.;
-    float h_spread = 1.; // 0 - 100
-
-    float dither_spread = .5;
-
     mat4 bayer;
     bayer[0] = vec4(0, 12, 3, 15);
     bayer[1] = vec4(8, 4, 11, 7);

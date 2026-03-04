@@ -1,9 +1,26 @@
 #include <glad/glad.h>
+#include <glad/glad.c>
 #include <GLFW/glfw3.h>
-#include <stb_image.h>
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
+#include <imgui/imconfig.h>
+#include <imgui/imgui_internal.h>
+#include <imgui/imgui.cpp>
+#include <imgui/imgui_impl_glfw.cpp>
+#include <imgui/imgui_impl_opengl3.cpp>
+#include <imgui/imgui_draw.cpp>
+#include <imgui/imgui_tables.cpp>
+#include <imgui/imgui_widgets.cpp>
+#include <imgui/imgui_demo.cpp>
+
+#include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+#include <stb_image.cpp>
 
 #include <shader_s.h>
 
@@ -68,6 +85,16 @@ int main(int argc, char *argv[])
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330 core");
 
     // build and compile our shader program
     // ------------------------------------
@@ -179,6 +206,14 @@ int main(int argc, char *argv[])
 
     // render loop
     // -----------
+    float num_colors = 8;
+    float luminance = 0.4;
+    float chroma = 0.3;
+    float hue = 22;
+    float l_spread = 0.05;
+    float c_spread = 0.;
+    float h_spread = 15.7;
+    float dither_spread = 0.25;
     while (!glfwWindowShouldClose(window))
     {
         // input
@@ -191,6 +226,22 @@ int main(int argc, char *argv[])
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+	ImGui::Begin("Debug Menu");
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::Text("%f FPS Average", io.Framerate);
+	ImGui::SliderFloat("Number of Colors", &num_colors, 0.0f, 20.0f);
+	ImGui::SliderFloat("Luminance", &luminance, 0.0f, 1.0f);
+	ImGui::SliderFloat("Chroma", &chroma, 0.0f, 1.0f);
+	ImGui::SliderFloat("Hue", &hue, 0.0f, 100.0f);
+	ImGui::SliderFloat("Luminance Spread", &l_spread, 0.0f, 1.0f);
+	ImGui::SliderFloat("Chroma Spread", &c_spread, 0.0f, 1.0f);
+	ImGui::SliderFloat("Hue Spread", &h_spread, 0.0f, 100.0f);
+	ImGui::SliderFloat("Dither Spread", &dither_spread, 0.0f, 1.0f);
+	ImGui::End();
+
         // bind textures on corresponding texture units
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
@@ -201,6 +252,15 @@ int main(int argc, char *argv[])
         glViewport(0, 0, SCR_SHOT_WIDTH, SCR_SHOT_HEIGHT);
         // Rendering will now be done to renderedTexture
         glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+	ourShader.setFloat("num_colors", num_colors);
+	ourShader.setFloat("luminance", luminance);
+	ourShader.setFloat("chroma", chroma);
+	ourShader.setFloat("hue", hue);
+	ourShader.setFloat("l_spread", l_spread);
+	ourShader.setFloat("c_spread", c_spread);
+	ourShader.setFloat("h_spread", h_spread);
+	ourShader.setFloat("dither_spread", dither_spread);
 
         // render the triangle
         // this has to be done twice, once for the renderedTexture, and once for the screen
@@ -217,6 +277,9 @@ int main(int argc, char *argv[])
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
@@ -228,6 +291,10 @@ int main(int argc, char *argv[])
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
